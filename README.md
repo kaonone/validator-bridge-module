@@ -2,6 +2,10 @@
 
 This is validator of a bridge between Ethereum and Substrate.
 
+# Status
+
+POC. Active development.
+
 # Building
 
 Install Rust:
