@@ -15,10 +15,16 @@ type BlockNumber = u128;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
+    EthBridgeResumedMessage(MessageId, BlockNumber),
+    EthBridgePausedMessage(MessageId, BlockNumber),
+    EthBridgeStartedMessage(MessageId, BlockNumber),
+    EthBridgeStoppedMessage(MessageId, BlockNumber),
+
     EthRelayMessage(MessageId, EthAddress, SubAddress, Amount, BlockNumber),
     EthApprovedRelayMessage(MessageId, EthAddress, SubAddress, Amount, BlockNumber),
     EthRevertMessage(MessageId, EthAddress, Amount, BlockNumber),
     EthWithdrawMessage(MessageId, BlockNumber),
+
     SubRelayMessage(MessageId, BlockNumber),
     SubApprovedRelayMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
     SubBurnedMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
@@ -59,6 +65,10 @@ pub fn spawn(
 impl Event {
     pub fn message_id(&self) -> &H256 {
         match self {
+            Self::EthBridgePausedMessage(message_id, _) => message_id,
+            Self::EthBridgeResumedMessage(message_id, _) => message_id,
+            Self::EthBridgeStartedMessage(message_id, _) => message_id,
+            Self::EthBridgeStoppedMessage(message_id, _) => message_id,
             Self::EthRelayMessage(message_id, _, _, _, _) => message_id,
             Self::EthApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::EthRevertMessage(message_id, _, _, _) => message_id,
@@ -72,6 +82,10 @@ impl Event {
 
     pub fn block_number(&self) -> u128 {
         match self {
+            Self::EthBridgeResumedMessage(_, block_number) => *block_number,
+            Self::EthBridgePausedMessage(_, block_number) => *block_number,
+            Self::EthBridgeStartedMessage(_, block_number) => *block_number,
+            Self::EthBridgeStoppedMessage(_, block_number) => *block_number,
             Self::EthRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::EthApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::EthRevertMessage(_, _, _, block_number) => *block_number,
@@ -97,10 +111,9 @@ impl Controller {
 
     fn start(&mut self) {
         log::info!("current status: {:?}", self.status);
-        self.update_status(Status::Active);
         let storage = &mut self.storage;
         let controller_rx = &self.controller_rx;
-        let status = &self.status;
+        let status = &mut self.status;
         let executor_tx = &self.executor_tx;
         controller_rx
             .iter()
@@ -115,17 +128,17 @@ impl Controller {
                             storage.clear_events_queue();
                             executor_tx.send(event).expect("can not sent event")
                         }
-                        Status::NotReady | Status::Paused | Status::Stopped => {
+                        Status::NotReady | Status::Paused => {
+                            if let Event::EthBridgeStartedMessage(_, _) = event {
+                                *status = Status::Active;
+                                log::info!("current status: {:?}", status);
+                            }
                             storage.put_event_to_queue(event)
                         }
+                        Status::Stopped => storage.put_event_to_queue(event),
                     }
                 }
                 Err(e) => log::debug!("controller storage error: {:?}", e),
             })
-    }
-
-    fn update_status(&mut self, status: Status) {
-        self.status = status;
-        log::info!("current status: {:?}", self.status);
     }
 }
