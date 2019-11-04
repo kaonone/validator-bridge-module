@@ -9,12 +9,12 @@ import {
   RevertMessage,
   WithdrawMessage,
   ApprovedRelayMessage,
-  ConfirmeMessage,
+  ConfirmMessage,
   ConfirmWithdrawMessage,
   СancellationСonfirmedMessage,
   WithdrawTransferCall,
 } from "../generated/Contract/Contract"
-import { Message, Entry } from "../generated/schema"
+import { Message, BridgeMessage } from "../generated/schema"
 
 export function handleRelayMessage(event: RelayMessage): void {
   let message = new Message(event.params.messageID.toHex())
@@ -32,7 +32,7 @@ export function handleRevertMessage(event: RevertMessage): void {
 }
 
 export function handleWithdrawMessage(event: WithdrawMessage): void {
-  let message = new Message(event.params.MessageID.toHex())
+  let message = new Message(event.params.messageID.toHex())
   message.ethAddress = event.params.substrateSender.toHexString()
   message.subAddress = event.params.recipient.toHexString()
   message.amount = event.params.amount
@@ -46,7 +46,7 @@ export function handleApprovedRelayMessage(event: ApprovedRelayMessage): void {
   changeMessageStatus(event.params.messageID.toHex(), "APPROVED")
 }
 
-export function handleConfirmMessage(event: ConfirmeMessage): void {
+export function handleConfirmMessage(event: ConfirmMessage): void {
   changeMessageStatus(event.params.messageID.toHex(), "CONFIRMED")
 }
 
@@ -58,30 +58,34 @@ export function handleСancellationСonfirmedMessage(event: СancellationСonfir
   changeMessageStatus(event.params.messageID.toHex(), "CANCELED")
 }
 
-export function handleBridgeStartedMessage(event: BridgeStartedMessage): void {
-  let message = new Entry(event.params.messageID.toHex())
-  message.ethAddress = event.params.sender.toHexString()
-  message.status = "PENDING"
-  message.action = "START"
-  message.ethBlockNumber = event.block.number
-  message.save()
+export function handleBridgeStoppedMessage(event: BridgeStoppedMessage): void {
+  let bridge_message = new BridgeMessage(event.params.messageID.toHex())
+  bridge_message.action = "STOP"
+  bridge_message.sender = event.params.sender.toHexString();
+  bridge_message.ethBlockNumber = event.block.number
+  bridge_message.save()
 }
 
-export function handleBridgeStoppedMessage(event: BridgeStoppedMessage): void {
-  let message = new Entry(event.params.messageID.toHex())
-  message.ethAddress = event.params.sender.toHexString()
-  message.status = "PENDING"
-  message.action = "STOP"
-  message.ethBlockNumber = event.block.number
-  message.save()
+export function handleBridgeStartedMessage(event: BridgeStartedMessage): void {
+  let bridge_message = new BridgeMessage(event.params.messageID.toHex())
+  bridge_message.action = "START"
+  bridge_message.sender = event.params.sender.toHexString();
+  bridge_message.ethBlockNumber = event.block.number
+  bridge_message.save()
 }
 
 export function handleBridgePausedMessage(event: BridgePausedMessage): void {
-  changeMessageStatus(event.params.messageID.toHex(), "CONFIRMED")
+  let bridge_message = new BridgeMessage(event.params.messageID.toHex())
+  bridge_message.action = "PAUSE"
+  bridge_message.ethBlockNumber = event.block.number
+  bridge_message.save()
 }
 
 export function handleBridgeResumedMessage(event: BridgeResumedMessage): void {
-  changeMessageStatus(event.params.messageID.toHex(), "CONFIRMED")
+  let bridge_message = new BridgeMessage(event.params.messageID.toHex())
+  bridge_message.action = "RESUME"
+  bridge_message.ethBlockNumber = event.block.number
+  bridge_message.save()
 }
 
 function changeMessageStatus(id: String, status: String): void {

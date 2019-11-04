@@ -384,7 +384,7 @@
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": false, "name": "MessageID", "type": "bytes32" },
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
       { "indexed": false, "name": "substrateSender", "type": "bytes32" },
       { "indexed": false, "name": "recipient", "type": "address" },
       { "indexed": false, "name": "amount", "type": "uint256" }
@@ -401,6 +401,73 @@
       { "indexed": false, "name": "amount", "type": "uint256" }
     ],
     "name": "ApprovedRelayMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
+      { "indexed": false, "name": "sender", "type": "address" }
+    ],
+    "name": "BridgeStoppedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
+      { "indexed": false, "name": "sender", "type": "address" }
+    ],
+    "name": "BridgeStartedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" }
+    ],
+    "name": "BridgePausedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" }
+    ],
+    "name": "BridgeResumedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
+      { "indexed": false, "name": "sender", "type": "address" },
+      { "indexed": false, "name": "substrateRecipient", "type": "bytes32" },
+      { "indexed": false, "name": "amount", "type": "uint256" }
+    ],
+    "name": "СancellationСonfirmedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
+      { "indexed": false, "name": "sender", "type": "address" },
+      { "indexed": false, "name": "substrateRecipient", "type": "bytes32" },
+      { "indexed": false, "name": "amount", "type": "uint256" }
+    ],
+    "name": "ConfirmWithdrawMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
+      { "indexed": false, "name": "sender", "type": "address" },
+      { "indexed": false, "name": "substrateRecipient", "type": "bytes32" },
+      { "indexed": false, "name": "amount", "type": "uint256" }
+    ],
+    "name": "ConfirmMessage",
     "type": "event"
   },
   {

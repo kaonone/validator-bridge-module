@@ -8,12 +8,11 @@ type Message @entity {
   ethBlockNumber: BigInt
 }
 
-type Entry @entity {
+type BridgeMessage @entity {
   id: ID!
-  ethAddress: String!
-  status: Status!
-  action: Direction!
-  ethBlockNumber: BigInt
+  action: BridgeMessageAction!
+  sender: String
+  ethBlockNumber: BigInt!
 }
 
 enum Status {
@@ -30,7 +29,9 @@ enum Direction {
   SUB2ETH
 }
 
-enum Action {
-  START
+enum BridgeMessageAction {
   STOP
+  START
+  PAUSE
+  RESUME
 }
