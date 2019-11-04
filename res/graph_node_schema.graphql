@@ -7,6 +7,15 @@ type Query {
         orderDirection: OrderDirection
         where: Message_filter
     ): [Message!]!
+
+    bridgeMessage(id: ID!): BridgeMessage
+    bridgeMessages(
+        skip: Int = 0
+        first: Int = 100
+        orderBy: BridgeMessage_orderBy
+        orderDirection: OrderDirection
+        where: BridgeMessage_filter
+    ): [BridgeMessage!]!
 }
 
 type Subscription {
@@ -18,6 +27,15 @@ type Subscription {
         orderDirection: OrderDirection
         where: Message_filter
     ): [Message!]!
+
+    bridgeBridgeMessage(id: ID!): BridgeMessage
+    bridgeBridgeMessages(
+        skip: Int = 0
+        first: Int = 100
+        orderBy: BridgeMessage_orderBy
+        orderDirection: OrderDirection
+        where: BridgeMessage_filter
+    ): [BridgeMessage!]!
 }
 
 type Message {
@@ -27,6 +45,13 @@ type Message {
   amount: String!
   status: Status!
   direction: Direction!
+  ethBlockNumber: String!
+}
+
+type BridgeMessage @entity {
+  id: ID!
+  action: BridgeMessageAction!
+  sender: String
   ethBlockNumber: String!
 }
 
@@ -41,4 +66,11 @@ enum Status {
 enum Direction {
   ETH2SUB
   SUB2ETH
+}
+
+enum BridgeMessageAction {
+  STOP
+  START
+  PAUSE
+  RESUME
 }
