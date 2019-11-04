@@ -11,16 +11,17 @@ use crate::controller::Event;
 struct EventListener {
     config: Config,
     controller_tx: Sender<Event>,
-    max_block_number: u64,
+    messages_offset: u64,
+    bridge_messages_offset: u64,
 }
 
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "res/graph_node_schema.graphql",
-    query_path = "res/graph_node_max_block_number.graphql",
+    query_path = "res/graph_node_max_block_number_of_messages.graphql",
     response_derives = "Debug"
 )]
-struct MaxBlockNumber;
+struct MaxBlockNumberOfMessages;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -38,6 +39,22 @@ struct AllMessages;
 )]
 struct MessagesByStatus;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "res/graph_node_schema.graphql",
+    query_path = "res/graph_node_max_block_number_of_bridge_messages.graphql",
+    response_derives = "Debug"
+)]
+struct MaxBlockNumberOfBridgeMessages;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "res/graph_node_schema.graphql",
+    query_path = "res/graph_node_all_bridge_messages.graphql",
+    response_derives = "Debug,Clone"
+)]
+struct AllBridgeMessages;
+
 pub fn spawn(config: Config, controller_tx: Sender<Event>) -> thread::JoinHandle<()> {
     thread::Builder::new()
         .name("graph_node_event_listener".to_string())
@@ -53,22 +70,61 @@ impl EventListener {
         EventListener {
             config,
             controller_tx,
-            max_block_number: 0,
+            messages_offset: 0,
+            bridge_messages_offset: 0,
         }
     }
 
     fn start(&mut self) {
-        let _ = self.get_max_block_number().and_then(|block_number| {
-            self.update_max_block_number(block_number);
-            Ok(())
-        });
+        let _: Result<(), reqwest::Error> = self
+            .get_max_block_number_of_messages()
+            .and_then(|block_number| {
+                self.update_messages_offset(block_number);
+                Ok(())
+            })
+            .or_else(|err| {
+                log::warn!(
+                    "can not get max block number of messages, reason: {:?}",
+                    err
+                );
+                Ok(())
+            });
+        let _: Result<(), reqwest::Error> = self
+            .get_max_block_number_of_bridge_messages()
+            .and_then(|block_number| {
+                self.update_bridge_messages_offset(block_number);
+                Ok(())
+            })
+            .or_else(|err| {
+                log::warn!(
+                    "can not get max block number of bridge_messages, reason: {:?}",
+                    err
+                );
+                Ok(())
+            });
         self.send_unfinalized_transactions();
 
         loop {
-            let _ = self.get_all_messages().and_then(|events| {
-                self.send_events(events);
-                Ok(())
-            });
+            let _: Result<(), reqwest::Error> = self
+                .get_all_messages()
+                .and_then(|events| {
+                    self.send_events(events);
+                    Ok(())
+                })
+                .or_else(|err| {
+                    log::warn!("can not get all_messages, reason: {:?}", err);
+                    Ok(())
+                });
+            let _: Result<(), reqwest::Error> = self
+                .get_all_bridge_messages()
+                .and_then(|events| {
+                    self.send_events(events);
+                    Ok(())
+                })
+                .or_else(|err| {
+                    log::warn!("can not get all_bridge_messages, reason: {:?}", err);
+                    Ok(())
+                });
             thread::sleep(Duration::from_millis(1000));
         }
     }
@@ -102,22 +158,23 @@ impl EventListener {
         self.send_events(events);
     }
 
-    fn get_max_block_number(&self) -> Result<u64, reqwest::Error> {
-        let request_body = MaxBlockNumber::build_query(max_block_number::Variables {
-            block_number: self.max_block_number as i64,
-        });
+    fn get_max_block_number_of_messages(&self) -> Result<u64, reqwest::Error> {
+        let request_body =
+            MaxBlockNumberOfMessages::build_query(max_block_number_of_messages::Variables {
+                block_number: self.messages_offset as i64,
+            });
         let client = reqwest::Client::new();
         let mut res = client
             .post(&self.config.graph_node_api_url)
             .json(&request_body)
             .send()?;
-        let response_body: Response<max_block_number::ResponseData> = res.json()?;
+        let response_body: Response<max_block_number_of_messages::ResponseData> = res.json()?;
         let messages = response_body
             .data
             .expect("can not get response_data")
             .messages;
         if messages.is_empty() {
-            Ok(self.max_block_number)
+            Ok(self.messages_offset)
         } else {
             Ok(messages[0]
                 .eth_block_number
@@ -126,9 +183,36 @@ impl EventListener {
         }
     }
 
+    fn get_max_block_number_of_bridge_messages(&self) -> Result<u64, reqwest::Error> {
+        let request_body = MaxBlockNumberOfBridgeMessages::build_query(
+            max_block_number_of_bridge_messages::Variables {
+                block_number: self.bridge_messages_offset as i64,
+            },
+        );
+        let client = reqwest::Client::new();
+        let mut res = client
+            .post(&self.config.graph_node_api_url)
+            .json(&request_body)
+            .send()?;
+        let response_body: Response<max_block_number_of_bridge_messages::ResponseData> =
+            res.json()?;
+        let bridge_messages = response_body
+            .data
+            .expect("can not get response_data")
+            .bridge_messages;
+        if bridge_messages.is_empty() {
+            Ok(self.bridge_messages_offset)
+        } else {
+            Ok(bridge_messages[0]
+                .eth_block_number
+                .parse()
+                .expect("can not parse eth_block_number"))
+        }
+    }
+
     fn get_all_messages(&mut self) -> Result<Vec<Event>, reqwest::Error> {
         let request_body = AllMessages::build_query(all_messages::Variables {
-            block_number: self.max_block_number as i64,
+            block_number: self.messages_offset as i64,
         });
         let client = reqwest::Client::new();
         let mut res = client
@@ -147,11 +231,11 @@ impl EventListener {
                 message
                     .eth_block_number
                     .parse()
-                    .expect("can not parase eth_block_number")
+                    .expect("can not parse eth_block_number")
             })
             .max()
             .and_then(|eth_block_number| {
-                self.update_max_block_number(eth_block_number);
+                self.update_messages_offset(eth_block_number);
                 Some(eth_block_number)
             });
 
@@ -186,9 +270,46 @@ impl EventListener {
         Ok(messages.iter().map(Into::into).collect())
     }
 
-    fn update_max_block_number(&mut self, block_number: u64) {
-        self.max_block_number = block_number;
-        log::debug!("max_block_number: {:?}", self.max_block_number);
+    fn get_all_bridge_messages(&mut self) -> Result<Vec<Event>, reqwest::Error> {
+        let request_body = AllBridgeMessages::build_query(all_bridge_messages::Variables {
+            block_number: self.bridge_messages_offset as i64,
+        });
+        let client = reqwest::Client::new();
+        let mut res = client
+            .post(&self.config.graph_node_api_url)
+            .json(&request_body)
+            .send()?;
+        let response_body: Response<all_bridge_messages::ResponseData> = res.json()?;
+        let bridge_messages = response_body
+            .data
+            .expect("can not get response_data")
+            .bridge_messages;
+
+        bridge_messages
+            .iter()
+            .map(|bridge_message| {
+                bridge_message
+                    .eth_block_number
+                    .parse()
+                    .expect("can not parse eth_block_number")
+            })
+            .max()
+            .and_then(|eth_block_number| {
+                self.update_bridge_messages_offset(eth_block_number);
+                Some(eth_block_number)
+            });
+
+        Ok(bridge_messages.iter().map(Into::into).collect())
+    }
+
+    fn update_messages_offset(&mut self, block_number: u64) {
+        self.messages_offset = block_number;
+        log::debug!("messages_offset: {:?}", self.messages_offset);
+    }
+
+    fn update_bridge_messages_offset(&mut self, block_number: u64) {
+        self.bridge_messages_offset = block_number;
+        log::debug!("bridge_messages_offset: {:?}", self.bridge_messages_offset);
     }
 }
 
@@ -286,6 +407,36 @@ impl From<&messages_by_status::MessagesByStatusMessages> for Event {
     }
 }
 
+impl From<&all_bridge_messages::AllBridgeMessagesBridgeMessages> for Event {
+    fn from(message: &all_bridge_messages::AllBridgeMessagesBridgeMessages) -> Self {
+        match &message.action {
+            all_bridge_messages::BridgeMessageAction::PAUSE => Event::EthBridgePausedMessage(
+                parse_h256(&message.id),
+                parse_u128(&message.eth_block_number),
+            ),
+            all_bridge_messages::BridgeMessageAction::RESUME => Event::EthBridgeResumedMessage(
+                parse_h256(&message.id),
+                parse_u128(&message.eth_block_number),
+            ),
+            all_bridge_messages::BridgeMessageAction::START => Event::EthBridgeStartedMessage(
+                parse_h256(&message.id),
+                parse_maybe_h160(&message.sender),
+                parse_u128(&message.eth_block_number),
+            ),
+            all_bridge_messages::BridgeMessageAction::STOP => Event::EthBridgeStoppedMessage(
+                parse_h256(&message.id),
+                parse_maybe_h160(&message.sender),
+                parse_u128(&message.eth_block_number),
+            ),
+            _ => Event::EthBridgeStoppedMessage(
+                parse_h256(&message.id),
+                parse_maybe_h160(&message.sender),
+                parse_u128(&message.eth_block_number),
+            ),
+        }
+    }
+}
+
 fn parse_h256(hash: &str) -> H256 {
     H256::from_slice(&hash[2..].from_hex::<Vec<_>>().expect("can not parse H256"))
 }
@@ -300,4 +451,13 @@ fn parse_u256(maybe_u256: &str) -> U256 {
 
 fn parse_u128(maybe_u128: &str) -> u128 {
     maybe_u128.parse().expect("can not parse u128")
+}
+
+fn parse_maybe_h160(maybe_hash: &Option<String>) -> H160 {
+    const DEFAULT_ETH_ADDRESS: [u8; 20] = [0; 20];
+
+    maybe_hash
+        .as_ref()
+        .map(|hash| parse_h160(hash))
+        .unwrap_or_else(|| H160::from_slice(&DEFAULT_ETH_ADDRESS))
 }

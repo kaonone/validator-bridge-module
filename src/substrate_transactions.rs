@@ -70,11 +70,23 @@ pub fn confirm_transfer(
     let _tx_hash = sub_api.send_extrinsic(xthex);
 }
 
+pub fn pause_bridge(sub_api: &Api, signer_mnemonic_phrase: String) {
+    let xthex = build_pause_bridge(&sub_api, get_sr25519_pair(&signer_mnemonic_phrase));
+    //send and watch extrinsic until finalized
+    let _tx_hash = sub_api.send_extrinsic(xthex);
+}
+
+pub fn resume_bridge(sub_api: &Api, signer_mnemonic_phrase: String) {
+    let xthex = build_resume_bridge(&sub_api, get_sr25519_pair(&signer_mnemonic_phrase));
+    //send and watch extrinsic until finalized
+    let _tx_hash = sub_api.send_extrinsic(xthex);
+}
+
 fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
     sr25519::Pair::from_phrase(signer_mnemonic_phrase, None).expect("invalid menemonic phrase")
 }
 
-pub fn build_mint(
+fn build_mint(
     sub_api: &Api,
     signer: sr25519::Pair,
     message_id: H256,
@@ -105,7 +117,7 @@ pub fn build_mint(
     xthex
 }
 
-pub fn build_approve_transfer(sub_api: &Api, signer: sr25519::Pair, message_id: H256) -> String {
+fn build_approve_transfer(sub_api: &Api, signer: sr25519::Pair, message_id: H256) -> String {
     let signer_index = signer_index(sub_api, &signer);
     let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
     let function = Call::Bridge(BridgeCall::approve_transfer(message_id));
@@ -129,7 +141,7 @@ pub fn build_approve_transfer(sub_api: &Api, signer: sr25519::Pair, message_id: 
     xthex
 }
 
-pub fn build_cancel_transfer(sub_api: &Api, signer: sr25519::Pair, message_id: H256) -> String {
+fn build_cancel_transfer(sub_api: &Api, signer: sr25519::Pair, message_id: H256) -> String {
     let signer_index = signer_index(sub_api, &signer);
     let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
     let function = Call::Bridge(BridgeCall::cancel_transfer(message_id));
@@ -153,10 +165,58 @@ pub fn build_cancel_transfer(sub_api: &Api, signer: sr25519::Pair, message_id: H
     xthex
 }
 
-pub fn build_confirm_transfer(sub_api: &Api, signer: sr25519::Pair, message_id: H256) -> String {
+fn build_confirm_transfer(sub_api: &Api, signer: sr25519::Pair, message_id: H256) -> String {
     let signer_index = signer_index(sub_api, &signer);
     let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
     let function = Call::Bridge(BridgeCall::confirm_transfer(message_id));
+    let era = Era::immortal();
+
+    log::debug!("using genesis hash: {:?}", genesis_hash);
+    let raw_payload = (Compact(signer_index), function, era, genesis_hash);
+    let signature = sign_raw_payload(&raw_payload, &signer);
+    let ext = UncheckedExtrinsic::new_signed(
+        signer_index,
+        raw_payload.1,
+        signer.public().into(),
+        signature,
+        era,
+    );
+
+    log::debug!("extrinsic: {:?}", ext);
+
+    let mut xthex: String = ext.encode().to_hex();
+    xthex.insert_str(0, "0x");
+    xthex
+}
+
+fn build_pause_bridge(sub_api: &Api, signer: sr25519::Pair) -> String {
+    let signer_index = signer_index(sub_api, &signer);
+    let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
+    let function = Call::Bridge(BridgeCall::pause_bridge());
+    let era = Era::immortal();
+
+    log::debug!("using genesis hash: {:?}", genesis_hash);
+    let raw_payload = (Compact(signer_index), function, era, genesis_hash);
+    let signature = sign_raw_payload(&raw_payload, &signer);
+    let ext = UncheckedExtrinsic::new_signed(
+        signer_index,
+        raw_payload.1,
+        signer.public().into(),
+        signature,
+        era,
+    );
+
+    log::debug!("extrinsic: {:?}", ext);
+
+    let mut xthex: String = ext.encode().to_hex();
+    xthex.insert_str(0, "0x");
+    xthex
+}
+
+fn build_resume_bridge(sub_api: &Api, signer: sr25519::Pair) -> String {
+    let signer_index = signer_index(sub_api, &signer);
+    let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
+    let function = Call::Bridge(BridgeCall::resume_bridge());
     let era = Era::immortal();
 
     log::debug!("using genesis hash: {:?}", genesis_hash);
