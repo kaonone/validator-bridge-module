@@ -1,0 +1,8 @@
+query AllValidatorMessages($blockNumber: Int!) {
+  validatorMessages(where: {ethBlockNumber_gte: $blockNumber}, orderBy: ethBlockNumber, orderDirection: asc) {
+    id
+    action
+    validator
+    ethBlockNumber
+  }
+}
