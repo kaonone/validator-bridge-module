@@ -56,8 +56,9 @@ impl Executor {
             web3::transports::WebSocket::new(&self.config.eth_api_url).unwrap();
         let web3 = web3::Web3::new(transport);
 
-        let contact_abi = include_bytes!("../res/EthContract.abi");
-        let abi = ethabi::Contract::load(contact_abi.to_vec().as_slice()).expect("can read ABI");
+        let contract_abi = include_bytes!("../res/EthContract.abi");
+        let abi =
+            ethabi::Contract::load(contract_abi.to_vec().as_slice()).expect("can not read ABI");
 
         let abi = Arc::new(abi);
         let web3 = Arc::new(web3);
@@ -65,6 +66,10 @@ impl Executor {
         self.executor_rx.iter().for_each(|event| {
             log::info!("received event: {:?}", event);
             match event {
+                Event::EthBridgePausedMessage(_message_id, _block_number) => (),
+                Event::EthBridgeResumedMessage(_message_id, _block_number) => (),
+                Event::EthBridgeStartedMessage(_message_id, _block_number) => (),
+                Event::EthBridgeStoppedMessage(_message_id, _block_number) => (),
                 Event::EthRelayMessage(
                     message_id,
                     eth_address,
