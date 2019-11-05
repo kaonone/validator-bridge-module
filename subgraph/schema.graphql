@@ -12,6 +12,15 @@ type BridgeMessage @entity {
   id: ID!
   action: BridgeMessageAction!
   sender: String
+  status: Status!
+  ethBlockNumber: BigInt!
+}
+
+type ValidatorMessage @entity {
+  id: ID!
+  action: ValidatorMessageAction!
+  validator: String!
+  status: Status!
   ethBlockNumber: BigInt!
 }
 
@@ -34,4 +43,9 @@ enum BridgeMessageAction {
   START
   PAUSE
   RESUME
+}
+
+enum ValidatorMessageAction {
+  ADD
+  REMOVE
 }
