@@ -66,10 +66,38 @@ impl Executor {
         self.executor_rx.iter().for_each(|event| {
             log::info!("received event: {:?}", event);
             match event {
-                Event::EthBridgePausedMessage(_message_id, _block_number) => (),
-                Event::EthBridgeResumedMessage(_message_id, _block_number) => (),
-                Event::EthBridgeStartedMessage(_message_id, _block_number) => (),
-                Event::EthBridgeStoppedMessage(_message_id, _block_number) => (),
+                Event::EthBridgePausedMessage(message_id, _block_number) => {
+                    handle_eth_bridge_paused_message(
+                        &self.config,
+                        runtime.executor(),
+                        sub_api.clone(),
+                        message_id,
+                    )
+                }
+                Event::EthBridgeResumedMessage(message_id, _block_number) => {
+                    handle_eth_bridge_resumed_message(
+                        &self.config,
+                        runtime.executor(),
+                        sub_api.clone(),
+                        message_id,
+                    )
+                }
+                Event::EthBridgeStartedMessage(message_id, _eth_address, _block_number) => {
+                    handle_eth_bridge_resumed_message(
+                        &self.config,
+                        runtime.executor(),
+                        sub_api.clone(),
+                        message_id,
+                    )
+                }
+                Event::EthBridgeStoppedMessage(message_id, _eth_address, _block_number) => {
+                    handle_eth_bridge_paused_message(
+                        &self.config,
+                        runtime.executor(),
+                        sub_api.clone(),
+                        message_id,
+                    )
+                }
                 Event::EthRelayMessage(
                     message_id,
                     eth_address,
@@ -156,6 +184,58 @@ impl Executor {
             }
         })
     }
+}
+
+fn handle_eth_bridge_paused_message(
+    config: &Config,
+    task_executor: TaskExecutor,
+    sub_api: Arc<Api>,
+    message_id: H256,
+) {
+    let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
+    let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+
+    task_executor.spawn(lazy(move || {
+        poll_fn(move || {
+            blocking(|| {
+                substrate_transactions::pause_bridge(
+                    &sub_api.clone(),
+                    sub_validator_mnemonic_phrase.clone(),
+                );
+                log::info!(
+                    "[substrate] called pause_bridge(), message_id: {:?}",
+                    message_id
+                );
+            })
+            .map_err(|_| panic!("the threadpool shut down"))
+        })
+    }));
+}
+
+fn handle_eth_bridge_resumed_message(
+    config: &Config,
+    task_executor: TaskExecutor,
+    sub_api: Arc<Api>,
+    message_id: H256,
+) {
+    let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
+    let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+
+    task_executor.spawn(lazy(move || {
+        poll_fn(move || {
+            blocking(|| {
+                substrate_transactions::resume_bridge(
+                    &sub_api.clone(),
+                    sub_validator_mnemonic_phrase.clone(),
+                );
+                log::info!(
+                    "[substrate] called resume_bridge(), message_id: {:?}",
+                    message_id
+                );
+            })
+            .map_err(|_| panic!("the threadpool shut down"))
+        })
+    }));
 }
 
 fn handle_eth_relay_message<T>(

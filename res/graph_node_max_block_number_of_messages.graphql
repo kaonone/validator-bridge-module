@@ -1,4 +1,4 @@
-query MaxBlockNumber($blockNumber: Int!) {
+query MaxBlockNumberOfMessages($blockNumber: Int!) {
   messages(where: {ethBlockNumber_gte: $blockNumber}, orderBy: ethBlockNumber, orderDirection: desc, first: 1) {
     ethBlockNumber
   }

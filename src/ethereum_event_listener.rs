@@ -2,7 +2,7 @@ use log;
 use web3::{
     contract::{Contract, Options},
     futures::Future,
-    types::{H256, U256},
+    types::{H160, H256, U256},
 };
 
 use std::{sync::mpsc::Sender, thread, time::Duration};
@@ -58,12 +58,25 @@ impl EventListener {
 
 fn build_bridge_status_event(bridge_status: U256) -> Event {
     const MESSAGE_ID: [u8; 32] = [0; 32];
-    const ETH_BLOCK_NUMBER: u128 = 0;
+    const DEFAULT_ETH_ADDRESS: [u8; 20] = [0; 20];
+    const DEFAULT_ETH_BLOCK_NUMBER: u128 = 0;
     match bridge_status.low_u64() {
-        0 => Event::EthBridgeStartedMessage(parse_h256(&MESSAGE_ID), ETH_BLOCK_NUMBER),
-        1 => Event::EthBridgePausedMessage(parse_h256(&MESSAGE_ID), ETH_BLOCK_NUMBER),
-        _ => Event::EthBridgeStoppedMessage(parse_h256(&MESSAGE_ID), ETH_BLOCK_NUMBER),
+        0 => Event::EthBridgeStartedMessage(
+            parse_h256(&MESSAGE_ID),
+            parse_h160(&DEFAULT_ETH_ADDRESS),
+            DEFAULT_ETH_BLOCK_NUMBER,
+        ),
+        1 => Event::EthBridgePausedMessage(parse_h256(&MESSAGE_ID), DEFAULT_ETH_BLOCK_NUMBER),
+        _ => Event::EthBridgeStoppedMessage(
+            parse_h256(&MESSAGE_ID),
+            parse_h160(&DEFAULT_ETH_ADDRESS),
+            DEFAULT_ETH_BLOCK_NUMBER,
+        ),
     }
+}
+
+fn parse_h160(hash: &[u8]) -> H160 {
+    H160::from_slice(hash)
 }
 
 fn parse_h256(hash: &[u8]) -> H256 {

@@ -31,9 +31,9 @@ dataSources:
           handler: handleWithdrawMessage
         - event: ApprovedRelayMessage(bytes32,address,bytes32,uint256)
           handler: handleApprovedRelayMessage
-        - event: BridgeStartedMessage(bytes32)
+        - event: BridgeStartedMessage(bytes32,address)
           handler: handleBridgeStartedMessage
-        - event: BridgeStoppedMessage(bytes32)
+        - event: BridgeStoppedMessage(bytes32,address)
           handler: handleBridgeStoppedMessage
         - event: BridgePausedMessage(bytes32)
           handler: handleBridgePausedMessage

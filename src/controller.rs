@@ -15,10 +15,10 @@ type BlockNumber = u128;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
-    EthBridgeResumedMessage(MessageId, BlockNumber),
     EthBridgePausedMessage(MessageId, BlockNumber),
-    EthBridgeStartedMessage(MessageId, BlockNumber),
-    EthBridgeStoppedMessage(MessageId, BlockNumber),
+    EthBridgeResumedMessage(MessageId, BlockNumber),
+    EthBridgeStartedMessage(MessageId, EthAddress, BlockNumber),
+    EthBridgeStoppedMessage(MessageId, EthAddress, BlockNumber),
 
     EthRelayMessage(MessageId, EthAddress, SubAddress, Amount, BlockNumber),
     EthApprovedRelayMessage(MessageId, EthAddress, SubAddress, Amount, BlockNumber),
@@ -67,8 +67,8 @@ impl Event {
         match self {
             Self::EthBridgePausedMessage(message_id, _) => message_id,
             Self::EthBridgeResumedMessage(message_id, _) => message_id,
-            Self::EthBridgeStartedMessage(message_id, _) => message_id,
-            Self::EthBridgeStoppedMessage(message_id, _) => message_id,
+            Self::EthBridgeStartedMessage(message_id, _, _) => message_id,
+            Self::EthBridgeStoppedMessage(message_id, _, _) => message_id,
             Self::EthRelayMessage(message_id, _, _, _, _) => message_id,
             Self::EthApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::EthRevertMessage(message_id, _, _, _) => message_id,
@@ -82,10 +82,10 @@ impl Event {
 
     pub fn block_number(&self) -> u128 {
         match self {
-            Self::EthBridgeResumedMessage(_, block_number) => *block_number,
             Self::EthBridgePausedMessage(_, block_number) => *block_number,
-            Self::EthBridgeStartedMessage(_, block_number) => *block_number,
-            Self::EthBridgeStoppedMessage(_, block_number) => *block_number,
+            Self::EthBridgeResumedMessage(_, block_number) => *block_number,
+            Self::EthBridgeStartedMessage(_, _, block_number) => *block_number,
+            Self::EthBridgeStoppedMessage(_, _, block_number) => *block_number,
             Self::EthRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::EthApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::EthRevertMessage(_, _, _, block_number) => *block_number,
@@ -129,7 +129,7 @@ impl Controller {
                             executor_tx.send(event).expect("can not sent event")
                         }
                         Status::NotReady | Status::Paused => {
-                            if let Event::EthBridgeStartedMessage(_, _) = event {
+                            if let Event::EthBridgeStartedMessage(..) = event {
                                 *status = Status::Active;
                                 log::info!("current status: {:?}", status);
                             }

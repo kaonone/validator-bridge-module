@@ -1,0 +1,8 @@
+query AllBridgeMessages($blockNumber: Int!) {
+  bridgeMessages(where: {ethBlockNumber_gte: $blockNumber}, orderBy: ethBlockNumber, orderDirection: asc) {
+    id
+    action
+    sender
+    ethBlockNumber
+  }
+}
