@@ -105,7 +105,7 @@ export function handleValidatorAddedMessage(event: ValidatorAddedMessage): void 
 
 export function handleValidatorRemovedMessage(event: ValidatorRemovedMessage): void {
   let validator_message = new ValidatorMessage(event.params.messageID.toHex())
-  validator_message.action = "ADD"
+  validator_message.action = "REMOVE"
   validator_message.validator = event.params.validatorAddress.toHexString()
   validator_message.status = "PENDING"
   validator_message.ethBlockNumber = event.block.number
