@@ -32,9 +32,10 @@ pub enum Event {
     SubApprovedRelayMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
     SubBurnedMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
     SubMintedMessage(MessageId, BlockNumber),
+    SubCancellationConfirmedMessage(MessageId, BlockNumber),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Status {
     NotReady,
     Active,
@@ -82,6 +83,7 @@ impl Event {
             Self::SubApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::SubBurnedMessage(message_id, _, _, _, _) => message_id,
             Self::SubMintedMessage(message_id, _) => message_id,
+            Self::SubCancellationConfirmedMessage(message_id, _) => message_id,
         }
     }
 
@@ -101,6 +103,7 @@ impl Event {
             Self::SubApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::SubBurnedMessage(_, _, _, _, block_number) => *block_number,
             Self::SubMintedMessage(_, block_number) => *block_number,
+            Self::SubCancellationConfirmedMessage(_, block_number) => *block_number,
         }
     }
 }
@@ -147,23 +150,34 @@ impl Controller {
 }
 
 fn change_status(status: &mut Status, event: &Event) {
+    let mut status_changed = false;
     match status {
         Status::Active => match event {
-            Event::EthBridgePausedMessage(..) => *status = Status::Paused,
-            Event::EthBridgeStoppedMessage(..) => *status = Status::Stopped,
+            Event::EthBridgePausedMessage(..) => {
+                *status = Status::Paused;
+                status_changed = true;
+            }
+            Event::EthBridgeStoppedMessage(..) => {
+                *status = Status::Stopped;
+                status_changed = true;
+            }
             _ => (),
         },
         Status::NotReady | Status::Paused => match event {
             Event::EthBridgeResumedMessage(..) | Event::EthBridgeStartedMessage(..) => {
-                *status = Status::Active
+                *status = Status::Active;
+                status_changed = true;
             }
             _ => (),
         },
         Status::Stopped => {
             if let Event::EthBridgeStartedMessage(..) = event {
-                *status = Status::Active
+                *status = Status::Active;
+                status_changed = true;
             }
         }
     }
-    log::info!("current status: {:?}", status);
+    if status_changed {
+        log::info!("current status: {:?}", status);
+    }
 }

@@ -94,6 +94,16 @@ impl EventListener {
     }
 
     fn start(&mut self) {
+        self.set_offsets();
+        self.handle_unfinalized_events();
+
+        loop {
+            self.handle_last_events();
+            thread::sleep(Duration::from_millis(1000));
+        }
+    }
+
+    fn set_offsets(&mut self) {
         let _: Result<(), reqwest::Error> = self
             .get_max_block_number_of_messages()
             .and_then(|block_number| {
@@ -133,53 +143,9 @@ impl EventListener {
                 );
                 Ok(())
             });
-        self.send_unfinalized_transactions();
-
-        loop {
-            let mut all_events = vec![];
-            let mut all_messages = self
-                .get_all_messages()
-                .or_else(|err| {
-                    log::warn!("can not get all_messages, reason: {:?}", err);
-                    Ok(vec![])
-                })
-                .map_err(|_: reqwest::Error| ())
-                .expect("can not get all_messages");
-            let mut all_bridge_messages = self
-                .get_all_bridge_messages()
-                .or_else(|err| {
-                    log::warn!("can not get all_bridge_messages, reason: {:?}", err);
-                    Ok(vec![])
-                })
-                .map_err(|_: reqwest::Error| ())
-                .expect("can not get all_bridge_messages");
-            let mut all_validator_messages = self
-                .get_all_validator_messages()
-                .or_else(|err| {
-                    log::warn!("can not get all_validator_messages, reason: {:?}", err);
-                    Ok(vec![])
-                })
-                .map_err(|_: reqwest::Error| ())
-                .expect("can not get all_validator_messages");
-
-            all_events.append(all_messages.as_mut());
-            all_events.append(all_bridge_messages.as_mut());
-            all_events.append(all_validator_messages.as_mut());
-            all_events.sort_by(|a, b| a.block_number().cmp(&b.block_number()));
-            self.send_events(all_events);
-
-            thread::sleep(Duration::from_millis(1000));
-        }
     }
 
-    fn send_events(&self, events: Vec<Event>) {
-        events
-            .iter()
-            .cloned()
-            .for_each(|event| self.controller_tx.send(event).expect("can not send event"));
-    }
-
-    fn send_unfinalized_transactions(&self) {
+    fn handle_unfinalized_events(&self) {
         const UNFINALIZED_STATUSES: [messages_by_status::Status; 4] = [
             messages_by_status::Status::PENDING,
             messages_by_status::Status::WITHDRAW,
@@ -199,6 +165,47 @@ impl EventListener {
 
         events.sort_by(|a, b| a.block_number().cmp(&b.block_number()));
         self.send_events(events);
+    }
+
+    fn handle_last_events(&mut self) {
+        let mut events = vec![];
+        let mut all_messages = self
+            .get_all_messages()
+            .or_else(|err| {
+                log::warn!("can not get all_messages, reason: {:?}", err);
+                Ok(vec![])
+            })
+            .map_err(|_: reqwest::Error| ())
+            .expect("can not get all_messages");
+        let mut all_bridge_messages = self
+            .get_all_bridge_messages()
+            .or_else(|err| {
+                log::warn!("can not get all_bridge_messages, reason: {:?}", err);
+                Ok(vec![])
+            })
+            .map_err(|_: reqwest::Error| ())
+            .expect("can not get all_bridge_messages");
+        let mut all_validator_messages = self
+            .get_all_validator_messages()
+            .or_else(|err| {
+                log::warn!("can not get all_validator_messages, reason: {:?}", err);
+                Ok(vec![])
+            })
+            .map_err(|_: reqwest::Error| ())
+            .expect("can not get all_validator_messages");
+
+        events.append(all_messages.as_mut());
+        events.append(all_bridge_messages.as_mut());
+        events.append(all_validator_messages.as_mut());
+        events.sort_by(|a, b| a.block_number().cmp(&b.block_number()));
+        self.send_events(events);
+    }
+
+    fn send_events(&self, events: Vec<Event>) {
+        events
+            .iter()
+            .cloned()
+            .for_each(|event| self.controller_tx.send(event).expect("can not send event"));
     }
 
     fn get_max_block_number_of_messages(&self) -> Result<u64, reqwest::Error> {

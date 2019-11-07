@@ -141,6 +141,13 @@ impl EventHandler {
                     Event::SubMintedMessage(H256::from_slice(message_id.as_bytes()), BLOCK_NUMBER);
                 self.controller_tx.send(event).expect("can not send event");
             }
+            bridge::RawEvent::CancellationConfirmedMessage(message_id) => {
+                let event = Event::SubCancellationConfirmedMessage(
+                    H256::from_slice(message_id.as_bytes()),
+                    BLOCK_NUMBER,
+                );
+                self.controller_tx.send(event).expect("can not send event");
+            }
         }
     }
 }
