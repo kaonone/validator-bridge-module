@@ -15,8 +15,12 @@ import {
   WithdrawTransferCall,
   ValidatorAddedMessage,
   ValidatorRemovedMessage,
+  HostAccountPausedMessage,
+  HostAccountResumedMessage,
+  GuestAccountPausedMessage,
+  GuestAccountResumedMessage,
 } from "../generated/Contract/Contract"
-import { Message, BridgeMessage, ValidatorMessage } from "../generated/schema"
+import { Message, AccountMessage, BridgeMessage, ValidatorMessage } from "../generated/schema"
 
 export function handleRelayMessage(event: RelayMessage): void {
   let message = new Message(event.params.messageID.toHex())
@@ -110,6 +114,46 @@ export function handleValidatorRemovedMessage(event: ValidatorRemovedMessage): v
   validator_message.status = "PENDING"
   validator_message.ethBlockNumber = event.block.number
   validator_message.save()
+}
+
+export function handleHostAccountPausedMessage(event: HostAccountPausedMessage): void {
+  let account_message = new AccountMessage(event.params.messageID.toHex())
+  account_message.action = "PAUSE"
+  account_message.direction = "ETH2SUB"
+  account_message.ethAddress = event.params.sender.toHexString()
+  account_message.timestamp = event.params.timestamp
+  account_message.ethBlockNumber = event.block.number
+  account_message.save()
+}
+
+export function handleHostAccountResumedMessage(event: HostAccountResumedMessage): void {
+  let account_message = new AccountMessage(event.params.messageID.toHex())
+  account_message.action = "RESUME"
+  account_message.direction = "ETH2SUB"
+  account_message.ethAddress = event.params.sender.toHexString()
+  account_message.timestamp = event.params.timestamp
+  account_message.ethBlockNumber = event.block.number
+  account_message.save()
+}
+
+export function handleGuestAccountPausedMessage(event: GuestAccountPausedMessage): void {
+  let account_message = new AccountMessage(event.params.messageID.toHex())
+  account_message.action = "PAUSE"
+  account_message.direction = "SUB2ETH"
+  account_message.subAddress = event.params.sender.toHexString()
+  account_message.timestamp = event.params.timestamp
+  account_message.ethBlockNumber = event.block.number
+  account_message.save()
+}
+
+export function handleGuestAccountResumedMessage(event: GuestAccountResumedMessage): void {
+  let account_message = new AccountMessage(event.params.messageID.toHex())
+  account_message.action = "RESUME"
+  account_message.direction = "SUB2ETH"
+  account_message.subAddress = event.params.sender.toHexString()
+  account_message.timestamp = event.params.timestamp
+  account_message.ethBlockNumber = event.block.number
+  account_message.save()
 }
 
 function changeMessageStatus(id: String, status: String): void {

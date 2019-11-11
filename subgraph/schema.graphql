@@ -24,6 +24,16 @@ type ValidatorMessage @entity {
   ethBlockNumber: BigInt!
 }
 
+type AccountMessage @entity {
+  id: ID!
+  action: AccountMessageAction!
+  direction: Direction!
+  ethAddress: String
+  subAddress: String
+  timestamp: BigInt!
+  ethBlockNumber: BigInt!
+}
+
 enum Status {
   PENDING
   WITHDRAW
@@ -48,4 +58,9 @@ enum BridgeMessageAction {
 enum ValidatorMessageAction {
   ADD
   REMOVE
+}
+
+enum AccountMessageAction {
+  PAUSE
+  RESUME
 }
