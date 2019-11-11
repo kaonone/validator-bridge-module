@@ -25,6 +25,9 @@ pub enum Event {
     EthRevertMessage(MessageId, EthAddress, Amount, BlockNumber),
     EthWithdrawMessage(MessageId, BlockNumber),
 
+    EthValidatorAddedMessage(MessageId, SubAddress, BlockNumber),
+    EthValidatorRemovedMessage(MessageId, SubAddress, BlockNumber),
+
     SubRelayMessage(MessageId, BlockNumber),
     SubApprovedRelayMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
     SubBurnedMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
@@ -73,6 +76,8 @@ impl Event {
             Self::EthApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::EthRevertMessage(message_id, _, _, _) => message_id,
             Self::EthWithdrawMessage(message_id, _) => message_id,
+            Self::EthValidatorAddedMessage(message_id, _, _) => message_id,
+            Self::EthValidatorRemovedMessage(message_id, _, _) => message_id,
             Self::SubRelayMessage(message_id, _) => message_id,
             Self::SubApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::SubBurnedMessage(message_id, _, _, _, _) => message_id,
@@ -90,6 +95,8 @@ impl Event {
             Self::EthApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::EthRevertMessage(_, _, _, block_number) => *block_number,
             Self::EthWithdrawMessage(_, block_number) => *block_number,
+            Self::EthValidatorAddedMessage(_, _, block_number) => *block_number,
+            Self::EthValidatorRemovedMessage(_, _, block_number) => *block_number,
             Self::SubRelayMessage(_, block_number) => *block_number,
             Self::SubApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::SubBurnedMessage(_, _, _, _, block_number) => *block_number,
@@ -120,6 +127,7 @@ impl Controller {
             .for_each(|event| match storage.put_event(&event) {
                 Ok(()) => {
                     log::info!("received event: {:?}", event);
+                    change_status(status, &event);
                     match status {
                         Status::Active => {
                             storage.iter_events_queue().cloned().for_each(|event| {
@@ -128,17 +136,34 @@ impl Controller {
                             storage.clear_events_queue();
                             executor_tx.send(event).expect("can not sent event")
                         }
-                        Status::NotReady | Status::Paused => {
-                            if let Event::EthBridgeStartedMessage(..) = event {
-                                *status = Status::Active;
-                                log::info!("current status: {:?}", status);
-                            }
+                        Status::NotReady | Status::Paused | Status::Stopped => {
                             storage.put_event_to_queue(event)
                         }
-                        Status::Stopped => storage.put_event_to_queue(event),
                     }
                 }
                 Err(e) => log::debug!("controller storage error: {:?}", e),
             })
     }
+}
+
+fn change_status(status: &mut Status, event: &Event) {
+    match status {
+        Status::Active => match event {
+            Event::EthBridgePausedMessage(..) => *status = Status::Paused,
+            Event::EthBridgeStoppedMessage(..) => *status = Status::Stopped,
+            _ => (),
+        },
+        Status::NotReady | Status::Paused => match event {
+            Event::EthBridgeResumedMessage(..) | Event::EthBridgeStartedMessage(..) => {
+                *status = Status::Active
+            }
+            _ => (),
+        },
+        Status::Stopped => {
+            if let Event::EthBridgeStartedMessage(..) = event {
+                *status = Status::Active
+            }
+        }
+    }
+    log::info!("current status: {:?}", status);
 }

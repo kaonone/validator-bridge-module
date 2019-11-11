@@ -13,8 +13,10 @@ import {
   ConfirmWithdrawMessage,
   СancellationСonfirmedMessage,
   WithdrawTransferCall,
+  ValidatorAddedMessage,
+  ValidatorRemovedMessage,
 } from "../generated/Contract/Contract"
-import { Message, BridgeMessage } from "../generated/schema"
+import { Message, BridgeMessage, ValidatorMessage } from "../generated/schema"
 
 export function handleRelayMessage(event: RelayMessage): void {
   let message = new Message(event.params.messageID.toHex())
@@ -62,6 +64,7 @@ export function handleBridgeStoppedMessage(event: BridgeStoppedMessage): void {
   let bridge_message = new BridgeMessage(event.params.messageID.toHex())
   bridge_message.action = "STOP"
   bridge_message.sender = event.params.sender.toHexString();
+  bridge_message.status = "PENDING"
   bridge_message.ethBlockNumber = event.block.number
   bridge_message.save()
 }
@@ -70,6 +73,7 @@ export function handleBridgeStartedMessage(event: BridgeStartedMessage): void {
   let bridge_message = new BridgeMessage(event.params.messageID.toHex())
   bridge_message.action = "START"
   bridge_message.sender = event.params.sender.toHexString();
+  bridge_message.status = "PENDING"
   bridge_message.ethBlockNumber = event.block.number
   bridge_message.save()
 }
@@ -77,6 +81,7 @@ export function handleBridgeStartedMessage(event: BridgeStartedMessage): void {
 export function handleBridgePausedMessage(event: BridgePausedMessage): void {
   let bridge_message = new BridgeMessage(event.params.messageID.toHex())
   bridge_message.action = "PAUSE"
+  bridge_message.status = "PENDING"
   bridge_message.ethBlockNumber = event.block.number
   bridge_message.save()
 }
@@ -84,8 +89,27 @@ export function handleBridgePausedMessage(event: BridgePausedMessage): void {
 export function handleBridgeResumedMessage(event: BridgeResumedMessage): void {
   let bridge_message = new BridgeMessage(event.params.messageID.toHex())
   bridge_message.action = "RESUME"
+  bridge_message.status = "PENDING"
   bridge_message.ethBlockNumber = event.block.number
   bridge_message.save()
+}
+
+export function handleValidatorAddedMessage(event: ValidatorAddedMessage): void {
+  let validator_message = new ValidatorMessage(event.params.messageID.toHex())
+  validator_message.action = "ADD"
+  validator_message.validator = event.params.validatorAddress.toHexString()
+  validator_message.status = "PENDING"
+  validator_message.ethBlockNumber = event.block.number
+  validator_message.save()
+}
+
+export function handleValidatorRemovedMessage(event: ValidatorRemovedMessage): void {
+  let validator_message = new ValidatorMessage(event.params.messageID.toHex())
+  validator_message.action = "REMOVE"
+  validator_message.validator = event.params.validatorAddress.toHexString()
+  validator_message.status = "PENDING"
+  validator_message.ethBlockNumber = event.block.number
+  validator_message.save()
 }
 
 function changeMessageStatus(id: String, status: String): void {

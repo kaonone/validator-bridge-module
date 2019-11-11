@@ -440,6 +440,40 @@
   {
     "anonymous": false,
     "inputs": [
+      {
+        "indexed": false,
+        "name": "messageID",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "validatorAddress",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ValidatorAddedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "messageID",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "name": "validatorAddress",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ValidatorRemovedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
       { "indexed": false, "name": "messageID", "type": "bytes32" },
       { "indexed": false, "name": "sender", "type": "address" },
       { "indexed": false, "name": "substrateRecipient", "type": "bytes32" },

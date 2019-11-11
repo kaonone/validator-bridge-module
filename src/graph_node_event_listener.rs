@@ -13,6 +13,7 @@ struct EventListener {
     controller_tx: Sender<Event>,
     messages_offset: u64,
     bridge_messages_offset: u64,
+    validator_messages_offset: u64,
 }
 
 #[derive(GraphQLQuery)]
@@ -55,6 +56,22 @@ struct MaxBlockNumberOfBridgeMessages;
 )]
 struct AllBridgeMessages;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "res/graph_node_schema.graphql",
+    query_path = "res/graph_node_max_block_number_of_validator_messages.graphql",
+    response_derives = "Debug"
+)]
+struct MaxBlockNumberOfValidatorMessages;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "res/graph_node_schema.graphql",
+    query_path = "res/graph_node_all_validator_messages.graphql",
+    response_derives = "Debug,Clone"
+)]
+struct AllValidatorMessages;
+
 pub fn spawn(config: Config, controller_tx: Sender<Event>) -> thread::JoinHandle<()> {
     thread::Builder::new()
         .name("graph_node_event_listener".to_string())
@@ -72,6 +89,7 @@ impl EventListener {
             controller_tx,
             messages_offset: 0,
             bridge_messages_offset: 0,
+            validator_messages_offset: 0,
         }
     }
 
@@ -102,29 +120,54 @@ impl EventListener {
                 );
                 Ok(())
             });
+        let _: Result<(), reqwest::Error> = self
+            .get_max_block_number_of_validator_messages()
+            .and_then(|block_number| {
+                self.update_validator_messages_offset(block_number);
+                Ok(())
+            })
+            .or_else(|err| {
+                log::warn!(
+                    "can not get max block number of validator_messages, reason: {:?}",
+                    err
+                );
+                Ok(())
+            });
         self.send_unfinalized_transactions();
 
         loop {
-            let _: Result<(), reqwest::Error> = self
+            let mut all_events = vec![];
+            let mut all_messages = self
                 .get_all_messages()
-                .and_then(|events| {
-                    self.send_events(events);
-                    Ok(())
-                })
                 .or_else(|err| {
                     log::warn!("can not get all_messages, reason: {:?}", err);
-                    Ok(())
-                });
-            let _: Result<(), reqwest::Error> = self
-                .get_all_bridge_messages()
-                .and_then(|events| {
-                    self.send_events(events);
-                    Ok(())
+                    Ok(vec![])
                 })
+                .map_err(|_: reqwest::Error| ())
+                .expect("can not get all_messages");
+            let mut all_bridge_messages = self
+                .get_all_bridge_messages()
                 .or_else(|err| {
                     log::warn!("can not get all_bridge_messages, reason: {:?}", err);
-                    Ok(())
-                });
+                    Ok(vec![])
+                })
+                .map_err(|_: reqwest::Error| ())
+                .expect("can not get all_bridge_messages");
+            let mut all_validator_messages = self
+                .get_all_validator_messages()
+                .or_else(|err| {
+                    log::warn!("can not get all_validator_messages, reason: {:?}", err);
+                    Ok(vec![])
+                })
+                .map_err(|_: reqwest::Error| ())
+                .expect("can not get all_validator_messages");
+
+            all_events.append(all_messages.as_mut());
+            all_events.append(all_bridge_messages.as_mut());
+            all_events.append(all_validator_messages.as_mut());
+            all_events.sort_by(|a, b| a.block_number().cmp(&b.block_number()));
+            self.send_events(all_events);
+
             thread::sleep(Duration::from_millis(1000));
         }
     }
@@ -204,6 +247,33 @@ impl EventListener {
             Ok(self.bridge_messages_offset)
         } else {
             Ok(bridge_messages[0]
+                .eth_block_number
+                .parse()
+                .expect("can not parse eth_block_number"))
+        }
+    }
+
+    fn get_max_block_number_of_validator_messages(&self) -> Result<u64, reqwest::Error> {
+        let request_body = MaxBlockNumberOfValidatorMessages::build_query(
+            max_block_number_of_validator_messages::Variables {
+                block_number: self.validator_messages_offset as i64,
+            },
+        );
+        let client = reqwest::Client::new();
+        let mut res = client
+            .post(&self.config.graph_node_api_url)
+            .json(&request_body)
+            .send()?;
+        let response_body: Response<max_block_number_of_validator_messages::ResponseData> =
+            res.json()?;
+        let validator_messages = response_body
+            .data
+            .expect("can not get response_data")
+            .validator_messages;
+        if validator_messages.is_empty() {
+            Ok(self.validator_messages_offset)
+        } else {
+            Ok(validator_messages[0]
                 .eth_block_number
                 .parse()
                 .expect("can not parse eth_block_number"))
@@ -302,6 +372,38 @@ impl EventListener {
         Ok(bridge_messages.iter().map(Into::into).collect())
     }
 
+    fn get_all_validator_messages(&mut self) -> Result<Vec<Event>, reqwest::Error> {
+        let request_body = AllValidatorMessages::build_query(all_validator_messages::Variables {
+            block_number: self.validator_messages_offset as i64,
+        });
+        let client = reqwest::Client::new();
+        let mut res = client
+            .post(&self.config.graph_node_api_url)
+            .json(&request_body)
+            .send()?;
+        let response_body: Response<all_validator_messages::ResponseData> = res.json()?;
+        let validator_messages = response_body
+            .data
+            .expect("can not get response_data")
+            .validator_messages;
+
+        validator_messages
+            .iter()
+            .map(|validator_message| {
+                validator_message
+                    .eth_block_number
+                    .parse()
+                    .expect("can not parse eth_block_number")
+            })
+            .max()
+            .and_then(|eth_block_number| {
+                self.update_validator_messages_offset(eth_block_number);
+                Some(eth_block_number)
+            });
+
+        Ok(validator_messages.iter().map(Into::into).collect())
+    }
+
     fn update_messages_offset(&mut self, block_number: u64) {
         self.messages_offset = block_number;
         log::debug!("messages_offset: {:?}", self.messages_offset);
@@ -310,6 +412,14 @@ impl EventListener {
     fn update_bridge_messages_offset(&mut self, block_number: u64) {
         self.bridge_messages_offset = block_number;
         log::debug!("bridge_messages_offset: {:?}", self.bridge_messages_offset);
+    }
+
+    fn update_validator_messages_offset(&mut self, block_number: u64) {
+        self.validator_messages_offset = block_number;
+        log::debug!(
+            "validator_messages_offset: {:?}",
+            self.validator_messages_offset
+        );
     }
 }
 
@@ -431,6 +541,30 @@ impl From<&all_bridge_messages::AllBridgeMessagesBridgeMessages> for Event {
             _ => Event::EthBridgeStoppedMessage(
                 parse_h256(&message.id),
                 parse_maybe_h160(&message.sender),
+                parse_u128(&message.eth_block_number),
+            ),
+        }
+    }
+}
+
+impl From<&all_validator_messages::AllValidatorMessagesValidatorMessages> for Event {
+    fn from(message: &all_validator_messages::AllValidatorMessagesValidatorMessages) -> Self {
+        match &message.action {
+            all_validator_messages::ValidatorMessageAction::ADD => Event::EthValidatorAddedMessage(
+                parse_h256(&message.id),
+                parse_h256(&message.validator),
+                parse_u128(&message.eth_block_number),
+            ),
+            all_validator_messages::ValidatorMessageAction::REMOVE => {
+                Event::EthValidatorRemovedMessage(
+                    parse_h256(&message.id),
+                    parse_h256(&message.validator),
+                    parse_u128(&message.eth_block_number),
+                )
+            }
+            _ => Event::EthValidatorRemovedMessage(
+                parse_h256(&message.id),
+                parse_h256(&message.validator),
                 parse_u128(&message.eth_block_number),
             ),
         }
