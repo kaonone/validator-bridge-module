@@ -186,12 +186,18 @@ impl Executor {
                     amount,
                 ),
                 Event::SubBurnedMessage(
-                    _message_id,
+                    message_id,
                     _sub_address,
                     _eth_address,
                     _amount,
                     _block_number,
-                ) => (),
+                ) => handle_sub_burned_message(
+                    &self.config,
+                    runtime.executor(),
+                    web3.clone(),
+                    abi.clone(),
+                    message_id,
+                ),
                 Event::SubMintedMessage(message_id, _block_number) => handle_sub_minted_message(
                     &self.config,
                     runtime.executor(),
@@ -557,6 +563,64 @@ fn handle_sub_minted_message<T>(
                             log::info!("[ethereum] can not send confirmTransfer({:?}), nonce: {:?}, reason: {:?}",
                                        args.0, nonce, err)
                         }
+                    }
+
+                    Ok(())
+                })
+        })
+        .or_else(|e| {
+            log::warn!("can not get nonce: {:?}", e);
+            Ok(())
+        });
+    task_executor.spawn(fut);
+}
+
+fn handle_sub_burned_message<T>(
+    config: &Config,
+    task_executor: TaskExecutor,
+    web3: Arc<web3::Web3<T>>,
+    abi: Arc<ethabi::Contract>,
+    message_id: H256,
+) where
+    T: web3::Transport + Send + Sync + 'static,
+    T::Out: Send,
+{
+    let args = (message_id,);
+    let eth_validator_private_key = config.eth_validator_private_key.clone();
+    let eth_contract_address = config.eth_contract_address;
+    let eth_gas_price = config.eth_gas_price;
+    let eth_gas = config.eth_gas;
+    let data = ethereum_transactions::build_transaction_data(&abi, "confirmBurn", args);
+    let fut = web3
+        .eth()
+        .transaction_count(config.eth_validator_address, None)
+        .and_then(move |nonce| {
+            let tx = ethereum_transactions::build(
+                eth_validator_private_key,
+                eth_contract_address,
+                nonce,
+                AMOUNT,
+                eth_gas_price,
+                eth_gas,
+                data,
+            );
+            log::debug!("raw confirmTransfer: {:?}", tx);
+            web3.eth()
+                .send_raw_transaction(Bytes::from(tx))
+                .then(move |res| {
+                    match res {
+                        Ok(tx_res) => log::info!(
+                            "[ethereum] called confirmBurn({:?}), nonce: {:?}, result: {:?}",
+                            args.0,
+                            nonce,
+                            tx_res
+                        ),
+                        Err(err) => log::info!(
+                            "[ethereum] can not send confirmBurn({:?}), nonce: {:?}, reason: {:?}",
+                            args.0,
+                            nonce,
+                            err
+                        ),
                     }
 
                     Ok(())
