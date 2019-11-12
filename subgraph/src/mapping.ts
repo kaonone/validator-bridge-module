@@ -15,8 +15,10 @@ import {
   WithdrawTransferCall,
   ValidatorAddedMessage,
   ValidatorRemovedMessage,
+  ChangeMinTxMessage,
+  ChangeMaxTxMessage,
 } from "../generated/Contract/Contract"
-import { Message, BridgeMessage, ValidatorMessage } from "../generated/schema"
+import { Message, BridgeMessage, ValidatorMessage, LimitMessage } from "../generated/schema"
 
 export function handleRelayMessage(event: RelayMessage): void {
   let message = new Message(event.params.messageID.toHex())
@@ -103,13 +105,22 @@ export function handleValidatorAddedMessage(event: ValidatorAddedMessage): void 
   validator_message.save()
 }
 
-export function handleValidatorRemovedMessage(event: ValidatorRemovedMessage): void {
-  let validator_message = new ValidatorMessage(event.params.messageID.toHex())
-  validator_message.action = "REMOVE"
-  validator_message.validator = event.params.validatorAddress.toHexString()
-  validator_message.status = "PENDING"
-  validator_message.ethBlockNumber = event.block.number
-  validator_message.save()
+export function handleChangeMinTxMessage(event: ChangeMinTxMessage): void {
+  let limit_message = new LimitMessage(event.params.messageID.toHex())
+  limit_message.action = "MIN"
+  limit_message.limit = event.params.limit
+  limit_message.status = "PENDING"
+  limit_message.ethBlockNumber = event.block.number
+  limit_message.save()
+}
+
+export function handleChangeMaxnTxMessage(event: ChangeMaxTxMessage): void {
+  let limit_message = new LimitMessage(event.params.messageID.toHex())
+  limit_message.action = "MAX"
+  limit_message.validator = event.params.limit
+  limit_message.status = "PENDING"
+  limit_message.ethBlockNumber = event.block.number
+  limit_message.save()
 }
 
 function changeMessageStatus(id: String, status: String): void {

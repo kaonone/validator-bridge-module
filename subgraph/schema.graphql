@@ -24,6 +24,14 @@ type ValidatorMessage @entity {
   ethBlockNumber: BigInt!
 }
 
+type LimitMessage @entity {
+  id: ID!
+  action: LimitMessageAction!
+  limit: Int!
+  status: Status!
+  ethBlockNumber: BigInt!
+}
+
 enum Status {
   PENDING
   WITHDRAW
@@ -48,4 +56,9 @@ enum BridgeMessageAction {
 enum ValidatorMessageAction {
   ADD
   REMOVE
+}
+
+enum LimitMessageAction {
+  MAX
+  MIN
 }

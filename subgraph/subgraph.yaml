@@ -49,4 +49,8 @@ dataSources:
           handler: handleValidatorAddedMessage
         - event: ValidatorRemovedMessage(bytes32,bytes32)
           handler: handleValidatorRemovedMessage
+        - event: ChangeMaxTxMessage(bytes32,uint256)
+          handler: handleChangeMaxTxMessage
+        - event: ChangeMinTxMessage(bytes32,uint256)
+          handler: handleChangeMinTxMessage
       file: ./src/mapping.ts
