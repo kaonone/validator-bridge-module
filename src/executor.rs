@@ -163,6 +163,10 @@ impl Executor {
                         validator,
                     )
                 }
+                Event::EthHostAccountPausedMessage(_, _, _, _) => (),
+                Event::EthHostAccountResumedMessage(_, _, _, _) => (),
+                Event::EthGuestAccountPausedMessage(_, _, _, _) => (),
+                Event::EthGuestAccountResumedMessage(_, _, _, _) => (),
                 Event::SubRelayMessage(message_id, _block_number) => handle_sub_relay_message(
                     &self.config,
                     runtime.executor(),
@@ -214,6 +218,34 @@ impl Executor {
                         message_id,
                     )
                 }
+                Event::SubAccountPausedMessage(
+                    message_id,
+                    sub_address,
+                    timestamp,
+                    _block_number,
+                ) => handle_sub_account_paused_message(
+                    &self.config,
+                    runtime.executor(),
+                    web3.clone(),
+                    abi.clone(),
+                    message_id,
+                    sub_address,
+                    timestamp,
+                ),
+                Event::SubAccountResumedMessage(
+                    message_id,
+                    sub_address,
+                    timestamp,
+                    _block_number,
+                ) => handle_sub_account_resumed_message(
+                    &self.config,
+                    runtime.executor(),
+                    web3.clone(),
+                    abi.clone(),
+                    message_id,
+                    sub_address,
+                    timestamp,
+                ),
             }
         })
     }
@@ -663,6 +695,101 @@ fn handle_sub_cancellation_confirmed_message<T>(
                         Err(err) => {
                             log::info!("[ethereum] can not send confirmCancel({:?}), nonce: {:?}, reason: {:?}",
                                        args.0, nonce, err)
+                        }
+                    }
+
+                    Ok(())
+                })
+        })
+        .or_else(|e| {
+            log::warn!("can not get nonce: {:?}", e);
+            Ok(())
+        });
+    task_executor.spawn(fut);
+}
+
+fn handle_sub_account_paused_message<T>(
+    config: &Config,
+    task_executor: TaskExecutor,
+    web3: Arc<web3::Web3<T>>,
+    abi: Arc<ethabi::Contract>,
+    message_id: H256,
+    sub_address: H256,
+    timestamp: u64,
+) where
+    T: web3::Transport + Send + Sync + 'static,
+    T::Out: Send,
+{
+    let args = (message_id, sub_address, timestamp);
+    let eth_validator_private_key = config.eth_validator_private_key.clone();
+    let eth_contract_address = config.eth_contract_address;
+    let eth_gas_price = config.eth_gas_price;
+    let eth_gas = config.eth_gas;
+    let data =
+        ethereum_transactions::build_transaction_data(&abi, "setPausedStatusForGuestAddress", args);
+    let fut = web3.eth().transaction_count(config.eth_validator_address, None)
+        .and_then(move |nonce| {
+            let tx = ethereum_transactions::build(eth_validator_private_key, eth_contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            log::debug!("raw setPausedStatusForGuestAddress: {:?}", tx);
+            web3.eth().send_raw_transaction(Bytes::from(tx))
+                .then(move |res| {
+                    match res {
+                        Ok(tx_res) => {
+                            log::info!("[ethereum] called setPausedStatusForGuestAddress({:?}, {:?}, {:?}), nonce: {:?}, result: {:?}",
+                                       args.0, args.1, args.2, nonce, tx_res)
+                        },
+                        Err(err) => {
+                            log::info!("[ethereum] can not send setPausedStatusForGuestAddress({:?}, {:?}, {:?}), nonce: {:?}, reason: {:?}",
+                                       args.0, args.1, args.2, nonce, err)
+                        }
+                    }
+
+                    Ok(())
+                })
+        })
+        .or_else(|e| {
+            log::warn!("can not get nonce: {:?}", e);
+            Ok(())
+        });
+    task_executor.spawn(fut);
+}
+
+fn handle_sub_account_resumed_message<T>(
+    config: &Config,
+    task_executor: TaskExecutor,
+    web3: Arc<web3::Web3<T>>,
+    abi: Arc<ethabi::Contract>,
+    message_id: H256,
+    sub_address: H256,
+    timestamp: u64,
+) where
+    T: web3::Transport + Send + Sync + 'static,
+    T::Out: Send,
+{
+    let args = (message_id, sub_address, timestamp);
+    let eth_validator_private_key = config.eth_validator_private_key.clone();
+    let eth_contract_address = config.eth_contract_address;
+    let eth_gas_price = config.eth_gas_price;
+    let eth_gas = config.eth_gas;
+    let data = ethereum_transactions::build_transaction_data(
+        &abi,
+        "setResumedStatusForGuestAddress",
+        args,
+    );
+    let fut = web3.eth().transaction_count(config.eth_validator_address, None)
+        .and_then(move |nonce| {
+            let tx = ethereum_transactions::build(eth_validator_private_key, eth_contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            log::debug!("raw setResumedStatusForGuestAddress: {:?}", tx);
+            web3.eth().send_raw_transaction(Bytes::from(tx))
+                .then(move |res| {
+                    match res {
+                        Ok(tx_res) => {
+                            log::info!("[ethereum] called setResumedStatusForGuestAddress({:?}, {:?}, {:?}), nonce: {:?}, result: {:?}",
+                                       args.0, args.1, args.2, nonce, tx_res)
+                        },
+                        Err(err) => {
+                            log::info!("[ethereum] can not send setResumedStatusForGuestAddress({:?}, {:?}, {:?}), nonce: {:?}, reason: {:?}",
+                                       args.0, args.1, args.2, nonce, err)
                         }
                     }
 

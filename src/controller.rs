@@ -12,6 +12,7 @@ type EthAddress = H160;
 type SubAddress = H256;
 type Amount = U256;
 type BlockNumber = u128;
+type Timestamp = u64;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
@@ -28,11 +29,19 @@ pub enum Event {
     EthValidatorAddedMessage(MessageId, SubAddress, BlockNumber),
     EthValidatorRemovedMessage(MessageId, SubAddress, BlockNumber),
 
+    EthHostAccountPausedMessage(MessageId, EthAddress, Timestamp, BlockNumber),
+    EthHostAccountResumedMessage(MessageId, EthAddress, Timestamp, BlockNumber),
+    EthGuestAccountPausedMessage(MessageId, SubAddress, Timestamp, BlockNumber),
+    EthGuestAccountResumedMessage(MessageId, SubAddress, Timestamp, BlockNumber),
+
     SubRelayMessage(MessageId, BlockNumber),
     SubApprovedRelayMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
     SubBurnedMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
     SubMintedMessage(MessageId, BlockNumber),
     SubCancellationConfirmedMessage(MessageId, BlockNumber),
+
+    SubAccountPausedMessage(MessageId, SubAddress, Timestamp, BlockNumber),
+    SubAccountResumedMessage(MessageId, SubAddress, Timestamp, BlockNumber),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -79,11 +88,17 @@ impl Event {
             Self::EthWithdrawMessage(message_id, _) => message_id,
             Self::EthValidatorAddedMessage(message_id, _, _) => message_id,
             Self::EthValidatorRemovedMessage(message_id, _, _) => message_id,
+            Self::EthHostAccountPausedMessage(message_id, _, _, _) => message_id,
+            Self::EthHostAccountResumedMessage(message_id, _, _, _) => message_id,
+            Self::EthGuestAccountPausedMessage(message_id, _, _, _) => message_id,
+            Self::EthGuestAccountResumedMessage(message_id, _, _, _) => message_id,
             Self::SubRelayMessage(message_id, _) => message_id,
             Self::SubApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::SubBurnedMessage(message_id, _, _, _, _) => message_id,
             Self::SubMintedMessage(message_id, _) => message_id,
             Self::SubCancellationConfirmedMessage(message_id, _) => message_id,
+            Self::SubAccountPausedMessage(message_id, _, _, _) => message_id,
+            Self::SubAccountResumedMessage(message_id, _, _, _) => message_id,
         }
     }
 
@@ -99,11 +114,17 @@ impl Event {
             Self::EthWithdrawMessage(_, block_number) => *block_number,
             Self::EthValidatorAddedMessage(_, _, block_number) => *block_number,
             Self::EthValidatorRemovedMessage(_, _, block_number) => *block_number,
+            Self::EthHostAccountPausedMessage(_, _, _, block_number) => *block_number,
+            Self::EthHostAccountResumedMessage(_, _, _, block_number) => *block_number,
+            Self::EthGuestAccountPausedMessage(_, _, _, block_number) => *block_number,
+            Self::EthGuestAccountResumedMessage(_, _, _, block_number) => *block_number,
             Self::SubRelayMessage(_, block_number) => *block_number,
             Self::SubApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::SubBurnedMessage(_, _, _, _, block_number) => *block_number,
             Self::SubMintedMessage(_, block_number) => *block_number,
             Self::SubCancellationConfirmedMessage(_, block_number) => *block_number,
+            Self::SubAccountPausedMessage(_, _, _, block_number) => *block_number,
+            Self::SubAccountResumedMessage(_, _, _, block_number) => *block_number,
         }
     }
 }

@@ -14,6 +14,7 @@ struct EventListener {
     messages_offset: u64,
     bridge_messages_offset: u64,
     validator_messages_offset: u64,
+    account_messages_offset: u64,
 }
 
 #[derive(GraphQLQuery)]
@@ -72,6 +73,22 @@ struct MaxBlockNumberOfValidatorMessages;
 )]
 struct AllValidatorMessages;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "res/graph_node_schema.graphql",
+    query_path = "res/graph_node_max_block_number_of_account_messages.graphql",
+    response_derives = "Debug"
+)]
+struct MaxBlockNumberOfAccountMessages;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "res/graph_node_schema.graphql",
+    query_path = "res/graph_node_all_account_messages.graphql",
+    response_derives = "Debug,Clone"
+)]
+struct AllAccountMessages;
+
 pub fn spawn(config: Config, controller_tx: Sender<Event>) -> thread::JoinHandle<()> {
     thread::Builder::new()
         .name("graph_node_event_listener".to_string())
@@ -90,6 +107,7 @@ impl EventListener {
             messages_offset: 0,
             bridge_messages_offset: 0,
             validator_messages_offset: 0,
+            account_messages_offset: 0,
         }
     }
 
@@ -139,6 +157,19 @@ impl EventListener {
             .or_else(|err| {
                 log::warn!(
                     "can not get max block number of validator_messages, reason: {:?}",
+                    err
+                );
+                Ok(())
+            });
+        let _: Result<(), reqwest::Error> = self
+            .get_max_block_number_of_account_messages()
+            .and_then(|block_number| {
+                self.update_account_messages_offset(block_number);
+                Ok(())
+            })
+            .or_else(|err| {
+                log::warn!(
+                    "can not get max block number of account_messages, reason: {:?}",
                     err
                 );
                 Ok(())
@@ -193,10 +224,19 @@ impl EventListener {
             })
             .map_err(|_: reqwest::Error| ())
             .expect("can not get all_validator_messages");
+        let mut all_account_messages = self
+            .get_all_account_messages()
+            .or_else(|err| {
+                log::warn!("can not get all_account_messages, reason: {:?}", err);
+                Ok(vec![])
+            })
+            .map_err(|_: reqwest::Error| ())
+            .expect("can not get all_account_messages");
 
         events.append(all_messages.as_mut());
         events.append(all_bridge_messages.as_mut());
         events.append(all_validator_messages.as_mut());
+        events.append(all_account_messages.as_mut());
         events.sort_by(|a, b| a.block_number().cmp(&b.block_number()));
         self.send_events(events);
     }
@@ -281,6 +321,33 @@ impl EventListener {
             Ok(self.validator_messages_offset)
         } else {
             Ok(validator_messages[0]
+                .eth_block_number
+                .parse()
+                .expect("can not parse eth_block_number"))
+        }
+    }
+
+    fn get_max_block_number_of_account_messages(&self) -> Result<u64, reqwest::Error> {
+        let request_body = MaxBlockNumberOfAccountMessages::build_query(
+            max_block_number_of_account_messages::Variables {
+                block_number: self.account_messages_offset as i64,
+            },
+        );
+        let client = reqwest::Client::new();
+        let mut res = client
+            .post(&self.config.graph_node_api_url)
+            .json(&request_body)
+            .send()?;
+        let response_body: Response<max_block_number_of_account_messages::ResponseData> =
+            res.json()?;
+        let account_messages = response_body
+            .data
+            .expect("can not get response_data")
+            .account_messages;
+        if account_messages.is_empty() {
+            Ok(self.account_messages_offset)
+        } else {
+            Ok(account_messages[0]
                 .eth_block_number
                 .parse()
                 .expect("can not parse eth_block_number"))
@@ -411,6 +478,38 @@ impl EventListener {
         Ok(validator_messages.iter().map(Into::into).collect())
     }
 
+    fn get_all_account_messages(&mut self) -> Result<Vec<Event>, reqwest::Error> {
+        let request_body = AllAccountMessages::build_query(all_account_messages::Variables {
+            block_number: self.account_messages_offset as i64,
+        });
+        let client = reqwest::Client::new();
+        let mut res = client
+            .post(&self.config.graph_node_api_url)
+            .json(&request_body)
+            .send()?;
+        let response_body: Response<all_account_messages::ResponseData> = res.json()?;
+        let account_messages = response_body
+            .data
+            .expect("can not get response_data")
+            .account_messages;
+
+        account_messages
+            .iter()
+            .map(|account_message| {
+                account_message
+                    .eth_block_number
+                    .parse()
+                    .expect("can not parse eth_block_number")
+            })
+            .max()
+            .and_then(|eth_block_number| {
+                self.update_account_messages_offset(eth_block_number);
+                Some(eth_block_number)
+            });
+
+        Ok(account_messages.iter().map(Into::into).collect())
+    }
+
     fn update_messages_offset(&mut self, block_number: u64) {
         self.messages_offset = block_number;
         log::debug!("messages_offset: {:?}", self.messages_offset);
@@ -426,6 +525,14 @@ impl EventListener {
         log::debug!(
             "validator_messages_offset: {:?}",
             self.validator_messages_offset
+        );
+    }
+
+    fn update_account_messages_offset(&mut self, block_number: u64) {
+        self.account_messages_offset = block_number;
+        log::debug!(
+            "account_messages_offset: {:?}",
+            self.account_messages_offset
         );
     }
 }
@@ -578,6 +685,56 @@ impl From<&all_validator_messages::AllValidatorMessagesValidatorMessages> for Ev
     }
 }
 
+impl From<&all_account_messages::AllAccountMessagesAccountMessages> for Event {
+    fn from(message: &all_account_messages::AllAccountMessagesAccountMessages) -> Self {
+        match (&message.action, &message.direction) {
+            (
+                all_account_messages::AccountMessageAction::PAUSE,
+                all_account_messages::Direction::ETH2SUB,
+            ) => Event::EthHostAccountPausedMessage(
+                parse_h256(&message.id),
+                parse_maybe_h160(&message.eth_address),
+                parse_u64(&message.timestamp),
+                parse_u128(&message.eth_block_number),
+            ),
+            (
+                all_account_messages::AccountMessageAction::RESUME,
+                all_account_messages::Direction::ETH2SUB,
+            ) => Event::EthHostAccountResumedMessage(
+                parse_h256(&message.id),
+                parse_maybe_h160(&message.eth_address),
+                parse_u64(&message.timestamp),
+                parse_u128(&message.eth_block_number),
+            ),
+            (
+                all_account_messages::AccountMessageAction::PAUSE,
+                all_account_messages::Direction::SUB2ETH,
+            ) => Event::EthGuestAccountPausedMessage(
+                parse_h256(&message.id),
+                parse_maybe_h256(&message.sub_address),
+                parse_u64(&message.timestamp),
+                parse_u128(&message.eth_block_number),
+            ),
+            (
+                all_account_messages::AccountMessageAction::RESUME,
+                all_account_messages::Direction::SUB2ETH,
+            ) => Event::EthGuestAccountResumedMessage(
+                parse_h256(&message.id),
+                parse_maybe_h256(&message.sub_address),
+                parse_u64(&message.timestamp),
+                parse_u128(&message.eth_block_number),
+            ),
+
+            (_, _) => Event::EthGuestAccountResumedMessage(
+                parse_h256(&message.id),
+                parse_maybe_h256(&message.sub_address),
+                parse_u64(&message.timestamp),
+                parse_u128(&message.eth_block_number),
+            ),
+        }
+    }
+}
+
 fn parse_h256(hash: &str) -> H256 {
     H256::from_slice(&hash[2..].from_hex::<Vec<_>>().expect("can not parse H256"))
 }
@@ -586,12 +743,16 @@ fn parse_h160(hash: &str) -> H160 {
     H160::from_slice(&hash[2..].from_hex::<Vec<_>>().expect("can not parse H160"))
 }
 
-fn parse_u256(maybe_u256: &str) -> U256 {
-    maybe_u256.parse().expect("can not parse U256")
+fn parse_u64(maybe_u64: &str) -> u64 {
+    maybe_u64.parse().expect("can not parse u64")
 }
 
 fn parse_u128(maybe_u128: &str) -> u128 {
     maybe_u128.parse().expect("can not parse u128")
+}
+
+fn parse_u256(maybe_u256: &str) -> U256 {
+    maybe_u256.parse().expect("can not parse U256")
 }
 
 fn parse_maybe_h160(maybe_hash: &Option<String>) -> H160 {
@@ -601,4 +762,13 @@ fn parse_maybe_h160(maybe_hash: &Option<String>) -> H160 {
         .as_ref()
         .map(|hash| parse_h160(hash))
         .unwrap_or_else(|| H160::from_slice(&DEFAULT_ETH_ADDRESS))
+}
+
+fn parse_maybe_h256(maybe_hash: &Option<String>) -> H256 {
+    const DEFAULT_SUB_ADDRESS: [u8; 32] = [0; 32];
+
+    maybe_hash
+        .as_ref()
+        .map(|hash| parse_h256(hash))
+        .unwrap_or_else(|| H256::from_slice(&DEFAULT_SUB_ADDRESS))
 }
