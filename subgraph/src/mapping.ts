@@ -15,8 +15,7 @@ import {
   WithdrawTransferCall,
   ValidatorAddedMessage,
   ValidatorRemovedMessage,
-  ChangeMinTxMessage,
-  ChangeMaxTxMessage,
+  ChangeLimitsMessage,
 } from "../generated/Contract/Contract"
 import { Message, BridgeMessage, ValidatorMessage, LimitMessage } from "../generated/schema"
 
@@ -105,19 +104,20 @@ export function handleValidatorAddedMessage(event: ValidatorAddedMessage): void 
   validator_message.save()
 }
 
-export function handleChangeMinTxMessage(event: ChangeMinTxMessage): void {
+export function handleChangeLimitsMessage(event: ChangeLimitsMessage): void {
   let limit_message = new LimitMessage(event.params.messageID.toHex())
-  limit_message.action = "MIN"
-  limit_message.limit = event.params.limit
-  limit_message.status = "PENDING"
-  limit_message.ethBlockNumber = event.block.number
-  limit_message.save()
-}
-
-export function handleChangeMaxnTxMessage(event: ChangeMaxTxMessage): void {
-  let limit_message = new LimitMessage(event.params.messageID.toHex())
-  limit_message.action = "MAX"
-  limit_message.validator = event.params.limit
+  //ETH Limits
+  limit_message.inHostTransactionValue = event.params.inHostTransactionValue;
+  limit_message.axHostTransactionValue = event.params.axHostTransactionValue;
+  limit_message.ayHostMaxLimit = event.params.ayHostMaxLimit;
+  limit_message.ayHostMaxLimitForOneAddress = event.params.ayHostMaxLimitForOneAddress;
+  limit_message.axHostPendingTransactionLimit = event.params.axHostPendingTransactionLimit;
+  //guest chain Limits
+  limit_message.inGuestTransactionValue = event.params.inGuestTransactionValue;
+  limit_message.axGuestTransactionValue = event.params.axGuestTransactionValue;
+  limit_message.ayGuestMaxLimit = event.params.ayGuestMaxLimit;
+  limit_message.ayGuestMaxLimitForOneAddress = event.params.ayGuestMaxLimitForOneAddress;
+  limit_message.axGuestPendingTransactionLimit = event.params.axGuestPendingTransactionLimit;
   limit_message.status = "PENDING"
   limit_message.ethBlockNumber = event.block.number
   limit_message.save()
