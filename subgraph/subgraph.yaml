@@ -19,6 +19,14 @@ dataSources:
         - ApprovedRelayMessage
         - BridgeStartedMessage
         - BridgeStoppedMessage
+        - BridgePausedMessage
+        - BridgeResumedMessage
+        - ConfirmMessage
+        - ConfirmWithdrawMessage
+        - CancellationConfirmedMessage
+        - ValidatorAddedMessage
+        - ValidatorRemovedMessage
+        - ChangeLimitsMessage
       abis:
         - name: Contract
           file: ./abis/Contract.json
@@ -49,8 +57,6 @@ dataSources:
           handler: handleValidatorAddedMessage
         - event: ValidatorRemovedMessage(bytes32,bytes32)
           handler: handleValidatorRemovedMessage
-        - event: ChangeMaxTxMessage(bytes32,uint256)
-          handler: handleChangeMaxTxMessage
-        - event: ChangeMinTxMessage(bytes32,uint256)
-          handler: handleChangeMinTxMessage
+        - event: ChangeLimitsMessage(bytes32,uint[10])
+          handler: handleChangeLimitsMessage
       file: ./src/mapping.ts
