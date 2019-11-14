@@ -25,12 +25,18 @@ type ValidatorMessage @entity {
 }
 
 type LimitMessage @entity {
-  id: ID!
-  action: LimitMessageAction!
-  limit: Int!
-  status: Status!
-  ethBlockNumber: BigInt!
-}
+    inHostTransactionValue: Int!,
+    axHostTransactionValue: Int!,
+    ayHostMaxLimit: Int!,
+    ayHostMaxLimitForOneAddress: Int!,
+    axHostPendingTransactionLimit: Int!,
+    
+    inGuestTransactionValue: Int!,
+    axGuestTransactionValue: Int!,
+    ayGuestMaxLimit: Int!,
+    ayGuestMaxLimitForOneAddress: Int!,
+    axGuestPendingTransactionLimit: Int!,
+    }
 
 enum Status {
   PENDING
@@ -56,9 +62,4 @@ enum BridgeMessageAction {
 enum ValidatorMessageAction {
   ADD
   REMOVE
-}
-
-enum LimitMessageAction {
-  MAX
-  MIN
 }
