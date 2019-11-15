@@ -26,7 +26,8 @@ dataSources:
         - CancellationConfirmedMessage
         - ValidatorAddedMessage
         - ValidatorRemovedMessage
-        - ChangeLimitsMessage
+        - ProposalCreatedMessage
+        - ProposalApprovedMessage
       abis:
         - name: Contract
           file: ./abis/Contract.json
@@ -39,14 +40,14 @@ dataSources:
           handler: handleWithdrawMessage
         - event: ApprovedRelayMessage(bytes32,address,bytes32,uint256)
           handler: handleApprovedRelayMessage
-        - event: BridgeStartedMessage(bytes32,address)
-          handler: handleBridgeStartedMessage
-        - event: BridgeStoppedMessage(bytes32,address)
-          handler: handleBridgeStoppedMessage
-        - event: BridgePausedMessage(bytes32)
-          handler: handleBridgePausedMessage
-        - event: BridgeResumedMessage(bytes32)
-          handler: handleBridgeResumedMessage
+        - event: BridgeStarted(bytes32,address)
+          handler: handleBridgeStarted
+        - event: BridgeStopped(bytes32,address)
+          handler: handleBridgeStopped
+        - event: BridgePaused(bytes32)
+          handler: handleBridgePaused
+        - event: BridgeResumed(bytes32)
+          handler: handleBridgeResumed
         - event: ConfirmMessage(bytes32,address,bytes32,uint256)
           handler: handleConfirmMessage
         - event: ConfirmWithdrawMessage(bytes32,address,bytes32,uint256)
@@ -57,8 +58,8 @@ dataSources:
           handler: handleValidatorAddedMessage
         - event: ValidatorRemovedMessage(bytes32,bytes32)
           handler: handleValidatorRemovedMessage
-        - event: ProposalCreated(bytes32,address,uint[10])
-          handler: handleProposalMessage
+        - event: ProposalCreated(bytes32, address, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint)
+          handler: handleProposalCreatedMessage
         - event: ProposalApproved(bytes32)
           handler: handleProposalApprovedMessage
       file: ./src/mapping.ts

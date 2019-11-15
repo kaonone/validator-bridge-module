@@ -24,21 +24,25 @@ type ValidatorMessage @entity {
   ethBlockNumber: BigInt!
 }
 
-type LimitMessage @entity {
-  id: ID!
+type BridgeLimits {
   inHostTransactionValue: Int!
   axHostTransactionValue: Int!
   ayHostMaxLimit: Int!
   ayHostMaxLimitForOneAddress: Int!
   axHostPendingTransactionLimit: Int!
-
   inGuestTransactionValue: Int!
   axGuestTransactionValue: Int!
   ayGuestMaxLimit: Int!
   ayGuestMaxLimitForOneAddress: Int!
   axGuestPendingTransactionLimit: Int!
+}
 
-  status: Status!
+type Proposal @entity {
+  id: ID!
+  address: String!
+  timestamp: BigInt!
+  limits: BridgeLimits!
+  status: ProposalStatus!
   ethBlockNumber: BigInt!
 }
 
@@ -66,4 +70,10 @@ enum BridgeMessageAction {
 enum ValidatorMessageAction {
   ADD
   REMOVE
+}
+
+enum ProposalStatus {
+  PENDING
+  APPROVED
+  DECLINED
 }

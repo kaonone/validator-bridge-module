@@ -1,10 +1,10 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
   Contract,
-  BridgeStoppedMessage,
-  BridgeStartedMessage,
-  BridgePausedMessage,
-  BridgeResumedMessage,
+  BridgeStopped,
+  BridgeStarted,
+  BridgePaused,
+  BridgeResumed,
   RelayMessage,
   RevertMessage,
   WithdrawMessage,
@@ -15,118 +15,142 @@ import {
   WithdrawTransferCall,
   ValidatorAddedMessage,
   ValidatorRemovedMessage,
-  ChangeLimitsMessage,
-} from "../generated/Contract/Contract"
-import { Message, BridgeMessage, ValidatorMessage, LimitMessage } from "../generated/schema"
+  ProposalCreatedMessage,
+  ProposalApprovedMessage
+} from "../generated/Contract/Contract";
+import {
+  Message,
+  BridgeMessage,
+  ValidatorMessage,
+  LimitMessage,
+  Proposal,
+  BridgeLimits
+} from "../generated/schema";
 
 export function handleRelayMessage(event: RelayMessage): void {
-  let message = new Message(event.params.messageID.toHex())
-  message.ethAddress = event.params.sender.toHexString()
-  message.subAddress = event.params.recipient.toHexString()
-  message.amount = event.params.amount
-  message.status = "PENDING"
-  message.direction = "ETH2SUB"
-  message.ethBlockNumber = event.block.number
-  message.save()
+  let message = new Message(event.params.messageID.toHex());
+  message.ethAddress = event.params.sender.toHexString();
+  message.subAddress = event.params.recipient.toHexString();
+  message.amount = event.params.amount;
+  message.status = "PENDING";
+  message.direction = "ETH2SUB";
+  message.ethBlockNumber = event.block.number;
+  message.save();
 }
 
 export function handleRevertMessage(event: RevertMessage): void {
-  changeMessageStatus(event.params.messageID.toHex(), "CANCELED")
+  changeMessageStatus(event.params.messageID.toHex(), "CANCELED");
 }
 
 export function handleWithdrawMessage(event: WithdrawMessage): void {
-  let message = new Message(event.params.messageID.toHex())
-  message.ethAddress = event.params.substrateSender.toHexString()
-  message.subAddress = event.params.recipient.toHexString()
-  message.amount = event.params.amount
-  message.status = "WITHDRAW"
-  message.direction = "SUB2ETH"
-  message.ethBlockNumber = event.block.number
-  message.save()
+  let message = new Message(event.params.messageID.toHex());
+  message.ethAddress = event.params.substrateSender.toHexString();
+  message.subAddress = event.params.recipient.toHexString();
+  message.amount = event.params.amount;
+  message.status = "WITHDRAW";
+  message.direction = "SUB2ETH";
+  message.ethBlockNumber = event.block.number;
+  message.save();
 }
 
 export function handleApprovedRelayMessage(event: ApprovedRelayMessage): void {
-  changeMessageStatus(event.params.messageID.toHex(), "APPROVED")
+  changeMessageStatus(event.params.messageID.toHex(), "APPROVED");
 }
 
 export function handleConfirmMessage(event: ConfirmMessage): void {
-  changeMessageStatus(event.params.messageID.toHex(), "CONFIRMED")
+  changeMessageStatus(event.params.messageID.toHex(), "CONFIRMED");
 }
 
 export function handleConfirmWithdrawMessage(event: ConfirmWithdrawMessage): void {
-  changeMessageStatus(event.params.messageID.toHex(), "CONFIRMED_WITHDRAW")
+  changeMessageStatus(event.params.messageID.toHex(), "CONFIRMED_WITHDRAW");
 }
 
 export function handleСancellationСonfirmedMessage(event: СancellationСonfirmedMessage): void {
-  changeMessageStatus(event.params.messageID.toHex(), "CANCELED")
+  changeMessageStatus(event.params.messageID.toHex(), "CANCELED");
 }
 
-export function handleBridgeStoppedMessage(event: BridgeStoppedMessage): void {
-  let bridge_message = new BridgeMessage(event.params.messageID.toHex())
-  bridge_message.action = "STOP"
+export function handleBridgeStopped(event: BridgeStopped): void {
+  let bridge_message = new BridgeMessage(event.params.messageID.toHex());
+  bridge_message.action = "STOP";
   bridge_message.sender = event.params.sender.toHexString();
-  bridge_message.status = "PENDING"
-  bridge_message.ethBlockNumber = event.block.number
-  bridge_message.save()
+  bridge_message.status = "PENDING";
+  bridge_message.ethBlockNumber = event.block.number;
+  bridge_message.save();
 }
 
-export function handleBridgeStartedMessage(event: BridgeStartedMessage): void {
-  let bridge_message = new BridgeMessage(event.params.messageID.toHex())
-  bridge_message.action = "START"
+export function handleBridgeStarted(event: BridgeStarted): void {
+  let bridge_message = new BridgeMessage(event.params.messageID.toHex());
+  bridge_message.action = "START";
   bridge_message.sender = event.params.sender.toHexString();
-  bridge_message.status = "PENDING"
-  bridge_message.ethBlockNumber = event.block.number
-  bridge_message.save()
+  bridge_message.status = "PENDING";
+  bridge_message.ethBlockNumber = event.block.number;
+  bridge_message.save();
 }
 
-export function handleBridgePausedMessage(event: BridgePausedMessage): void {
-  let bridge_message = new BridgeMessage(event.params.messageID.toHex())
-  bridge_message.action = "PAUSE"
-  bridge_message.status = "PENDING"
-  bridge_message.ethBlockNumber = event.block.number
-  bridge_message.save()
+export function handleBridgePaused(event: BridgePaused): void {
+  let bridge_message = new BridgeMessage(event.params.messageID.toHex());
+  bridge_message.action = "PAUSE";
+  bridge_message.status = "PENDING";
+  bridge_message.ethBlockNumber = event.block.number;
+  bridge_message.save();
 }
 
-export function handleBridgeResumedMessage(event: BridgeResumedMessage): void {
-  let bridge_message = new BridgeMessage(event.params.messageID.toHex())
-  bridge_message.action = "RESUME"
-  bridge_message.status = "PENDING"
-  bridge_message.ethBlockNumber = event.block.number
-  bridge_message.save()
+export function handleBridgeResumed(event: BridgeResumed): void {
+  let bridge_message = new BridgeMessage(event.params.messageID.toHex());
+  bridge_message.action = "RESUME";
+  bridge_message.status = "PENDING";
+  bridge_message.ethBlockNumber = event.block.number;
+  bridge_message.save();
 }
 
 export function handleValidatorAddedMessage(event: ValidatorAddedMessage): void {
-  let validator_message = new ValidatorMessage(event.params.messageID.toHex())
-  validator_message.action = "ADD"
-  validator_message.validator = event.params.validatorAddress.toHexString()
-  validator_message.status = "PENDING"
-  validator_message.ethBlockNumber = event.block.number
-  validator_message.save()
+  let validator_message = new ValidatorMessage(event.params.messageID.toHex());
+  validator_message.action = "ADD";
+  validator_message.validator = event.params.validatorAddress.toHexString();
+  validator_message.status = "PENDING";
+  validator_message.ethBlockNumber = event.block.number;
+  validator_message.save();
 }
 
-export function handleChangeLimitsMessage(event: ChangeLimitsMessage): void {
-  let limit_message = new LimitMessage(event.params.messageID.toHex())
+export function handleProposalCreatedMessage(event: ProposalCreatedMessage): void {
+  let proposal = new Proposal(event.params.proposalID.toHex());
+  let limits = new BridgeLimits(); 
+  
   //ETH Limits
-  limit_message.inHostTransactionValue = event.params.inHostTransactionValue;
-  limit_message.axHostTransactionValue = event.params.axHostTransactionValue;
-  limit_message.ayHostMaxLimit = event.params.ayHostMaxLimit;
-  limit_message.ayHostMaxLimitForOneAddress = event.params.ayHostMaxLimitForOneAddress;
-  limit_message.axHostPendingTransactionLimit = event.params.axHostPendingTransactionLimit;
+  limits.inHostTransactionValue = event.params.inHostTransactionValue;
+  limits.axHostTransactionValue = event.params.axHostTransactionValue;
+  limits.ayHostMaxLimit = event.params.ayHostMaxLimit;
+  limits.ayHostMaxLimitForOneAddress = event.params.ayHostMaxLimitForOneAddress;
+  limits.axHostPendingTransactionLimit = event.params.axHostPendingTransactionLimit;
   //guest chain Limits
-  limit_message.inGuestTransactionValue = event.params.inGuestTransactionValue;
-  limit_message.axGuestTransactionValue = event.params.axGuestTransactionValue;
-  limit_message.ayGuestMaxLimit = event.params.ayGuestMaxLimit;
-  limit_message.ayGuestMaxLimitForOneAddress = event.params.ayGuestMaxLimitForOneAddress;
-  limit_message.axGuestPendingTransactionLimit = event.params.axGuestPendingTransactionLimit;
-  limit_message.status = "PENDING"
-  limit_message.ethBlockNumber = event.block.number
-  limit_message.save()
+  limits.inGuestTransactionValue = event.params.inGuestTransactionValue;
+  limits.axGuestTransactionValue = event.params.axGuestTransactionValue;
+  limits.ayGuestMaxLimit = event.params.ayGuestMaxLimit;
+  limits.ayGuestMaxLimitForOneAddress = event.params.ayGuestMaxLimitForOneAddress;
+  limits.axGuestPendingTransactionLimit = event.params.axGuestPendingTransactionLimit;
+
+  proposal.limits = limits;
+  proposal.status = "PENDING";
+  proposal.ethBlockNumber = event.block.number;
+  proposal.save();
+}
+
+export function handleProposalApprovedMessage(event: ProposalApprovedMessage): void {
+  changeProposalStatus(event.params.proposalID.toHex(), "APPROVED");
 }
 
 function changeMessageStatus(id: String, status: String): void {
-  let message = Message.load(id)
+  let message = Message.load(id);
   if (message != null) {
-    message.status = status
-    message.save()
+    message.status = status;
+    message.save();
+  }
+}
+
+function changeProposalStatus(id: String, status: String): void {
+  let proposal = Proposal.load(id);
+  if (proposal != null) {
+    proposal.status = status;
+    proposal.save();
   }
 }
