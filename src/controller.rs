@@ -14,6 +14,12 @@ type Amount = U256;
 type BlockNumber = u128;
 type Timestamp = u64;
 
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum Address {
+    Eth(EthAddress),
+    Sub(SubAddress),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Event {
     EthBridgePausedMessage(MessageId, BlockNumber),
@@ -42,6 +48,12 @@ pub enum Event {
 
     SubAccountPausedMessage(MessageId, SubAddress, Timestamp, BlockNumber),
     SubAccountResumedMessage(MessageId, SubAddress, Timestamp, BlockNumber),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum EventType {
+    Transfer,
+    Other,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -127,6 +139,36 @@ impl Event {
             Self::SubAccountResumedMessage(_, _, _, block_number) => *block_number,
         }
     }
+
+    fn event_type(&self) -> EventType {
+        match self {
+            Self::EthRelayMessage(..) => EventType::Transfer,
+            Self::EthApprovedRelayMessage(..) => EventType::Transfer,
+            Self::EthRevertMessage(..) => EventType::Other,
+            Self::EthWithdrawMessage(..) => EventType::Transfer,
+            Self::SubRelayMessage(..) => EventType::Transfer,
+            Self::SubApprovedRelayMessage(..) => EventType::Transfer,
+            Self::SubBurnedMessage(..) => EventType::Transfer,
+            Self::SubMintedMessage(..) => EventType::Transfer,
+            Self::SubCancellationConfirmedMessage(..) => EventType::Other,
+            _ => EventType::Other,
+        }
+    }
+
+    pub fn sender(&self) -> Option<Address> {
+        match self {
+            Self::EthRelayMessage(_, eth_address, _, _, _) => Some(Address::Eth(*eth_address)),
+            Self::EthApprovedRelayMessage(_, eth_address, _, _, _) => Some(Address::Eth(*eth_address)),
+            Self::EthRevertMessage(_, eth_address, _, _) => Some(Address::Eth(*eth_address)),
+            Self::EthWithdrawMessage(_, _) => None,
+            Self::SubRelayMessage(_, _) => None,
+            Self::SubApprovedRelayMessage(_, sub_address, _, _, _) => Some(Address::Sub(*sub_address)),
+            Self::SubBurnedMessage(_, sub_address, _, _, _) => Some(Address::Sub(*sub_address)),
+            Self::SubMintedMessage(_, _) => None,
+            Self::SubCancellationConfirmedMessage(_, _) => None,
+            _ => None,
+        }
+    }
 }
 
 impl Controller {
@@ -154,11 +196,18 @@ impl Controller {
                     change_status(status, &event);
                     match status {
                         Status::Active => {
-                            storage.iter_events_queue().cloned().for_each(|event| {
+                            handle_account_control_events(storage, &event);
+                            let deferred_events = storage.iter_events_queue().cloned().collect::<Vec<_>>();
+                            deferred_events.iter().cloned().for_each(|event| {
+                                handle_account_control_events(storage, &event);
                                 executor_tx.send(event).expect("can not sent event")
                             });
                             storage.clear_events_queue();
-                            executor_tx.send(event).expect("can not sent event")
+                            if event.event_type() == EventType::Transfer && storage.is_account_blocked(event.sender()) {
+                                storage.put_event_to_account_queue(event)
+                            } else {
+                                executor_tx.send(event).expect("can not sent event")
+                            }
                         }
                         Status::NotReady | Status::Paused | Status::Stopped => {
                             storage.put_event_to_queue(event)
@@ -200,5 +249,27 @@ fn change_status(status: &mut Status, event: &Event) {
     }
     if status_changed {
         log::info!("current status: {:?}", status);
+    }
+}
+
+fn handle_account_control_events(storage: &mut ControllerStorage, event: &Event) {
+    match event {
+        Event::EthHostAccountPausedMessage(_, eth_address, _, _) => {
+            storage.block_account(Address::Eth(*eth_address));
+            log::info!("ethereum account {:?} is blocked", eth_address);
+        },
+        Event::EthHostAccountResumedMessage(_, eth_address, _, _) => {
+            storage.unblock_account(Address::Eth(*eth_address));
+            log::info!("ethereum account {:?} is unblocked", eth_address);
+        },
+        Event::EthGuestAccountPausedMessage(_, sub_address, _, _) => {
+            storage.block_account(Address::Sub(*sub_address));
+            log::info!("substrate account {:?} is blocked", sub_address);
+        },
+        Event::EthGuestAccountResumedMessage(_, sub_address, _, _) => {
+            storage.unblock_account(Address::Sub(*sub_address));
+            log::info!("substrate account {:?} is unblocked", sub_address);
+        },
+        _ => (),
     }
 }

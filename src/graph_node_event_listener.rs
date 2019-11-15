@@ -89,6 +89,14 @@ struct MaxBlockNumberOfAccountMessages;
 )]
 struct AllAccountMessages;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "res/graph_node_schema.graphql",
+    query_path = "res/graph_node_all_accounts.graphql",
+    response_derives = "Debug,Clone"
+)]
+struct AllAccounts;
+
 pub fn spawn(config: Config, controller_tx: Sender<Event>) -> thread::JoinHandle<()> {
     thread::Builder::new()
         .name("graph_node_event_listener".to_string())
@@ -112,6 +120,7 @@ impl EventListener {
     }
 
     fn start(&mut self) {
+        self.handle_blocked_accounts();
         self.set_offsets();
         self.handle_unfinalized_events();
 
@@ -119,6 +128,19 @@ impl EventListener {
             self.handle_last_events();
             thread::sleep(Duration::from_millis(1000));
         }
+    }
+
+    fn handle_blocked_accounts(&self) {
+        let events = self
+            .get_events_for_blocked_accounts()
+            .or_else(|err| {
+                log::warn!("can not get blocked_accounts, reason: {:?}", err);
+                Ok(vec![])
+            })
+            .map_err(|_: reqwest::Error| ())
+            .expect("can not get blocked_account");
+
+        self.send_events(events);
     }
 
     fn set_offsets(&mut self) {
@@ -510,6 +532,24 @@ impl EventListener {
         Ok(account_messages.iter().map(Into::into).collect())
     }
 
+    fn get_events_for_blocked_accounts(&self) -> Result<Vec<Event>, reqwest::Error> {
+        let request_body = AllAccounts::build_query(all_accounts::Variables {
+            timestamp: begin_of_this_day().to_string(), status: all_accounts::AccountStatus::BLOCKED
+        });
+        let client = reqwest::Client::new();
+        let mut res = client
+            .post(&self.config.graph_node_api_url)
+            .json(&request_body)
+            .send()?;
+        let response_body: Response<all_accounts::ResponseData> = res.json()?;
+        let accounts = response_body
+            .data
+            .expect("can not get response_data")
+            .accounts;
+
+        Ok(accounts.iter().map(Into::into).collect())
+    }
+
     fn update_messages_offset(&mut self, block_number: u64) {
         self.messages_offset = block_number;
         log::debug!("messages_offset: {:?}", self.messages_offset);
@@ -735,6 +775,33 @@ impl From<&all_account_messages::AllAccountMessagesAccountMessages> for Event {
     }
 }
 
+impl From<&all_accounts::AllAccountsAccounts> for Event {
+    fn from(message: &all_accounts::AllAccountsAccounts) -> Self {
+        match &message.kind {
+            all_accounts::AccountKind::ETH => Event::EthHostAccountPausedMessage(
+                parse_h256(&message.message_id),
+                parse_h160(&message.id),
+                parse_u64(&message.timestamp),
+                parse_u128(&message.eth_block_number),
+            ),
+            all_accounts::AccountKind::SUB => Event::EthGuestAccountPausedMessage(
+                parse_h256(&message.message_id),
+                parse_h256(&message.id),
+                parse_u64(&message.timestamp),
+                parse_u128(&message.eth_block_number),
+            ),
+
+            _ => Event::EthGuestAccountPausedMessage(
+                parse_h256(&message.message_id),
+                parse_h256(&message.id),
+                parse_u64(&message.timestamp),
+                parse_u128(&message.eth_block_number),
+            ),
+        }
+    }
+}
+
+
 fn parse_h256(hash: &str) -> H256 {
     H256::from_slice(&hash[2..].from_hex::<Vec<_>>().expect("can not parse H256"))
 }
@@ -771,4 +838,9 @@ fn parse_maybe_h256(maybe_hash: &Option<String>) -> H256 {
         .as_ref()
         .map(|hash| parse_h256(hash))
         .unwrap_or_else(|| H256::from_slice(&DEFAULT_SUB_ADDRESS))
+}
+
+pub fn begin_of_this_day() -> u64 {
+    const SECONDS_IN_DAY: u64 = 24 * 60 * 60;
+    time::now().to_timespec().sec as u64 / SECONDS_IN_DAY * SECONDS_IN_DAY
 }
