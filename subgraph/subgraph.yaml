@@ -57,4 +57,6 @@ dataSources:
           handler: handleGuestAccountPausedMessage
         - event: GuestAccountResumedMessage(bytes32,bytes32,uint256)
           handler: handleGuestAccountResumedMessage
+        - event: SetNewLimits(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleSetNewLimits
       file: ./src/mapping.ts
