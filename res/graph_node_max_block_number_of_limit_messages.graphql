@@ -1,0 +1,5 @@
+query MaxBlockNumberOfLimitMessages($blockNumber: Int!) {
+  limitMessages(where: {ethBlockNumber_gte: $blockNumber}, orderBy: ethBlockNumber, orderDirection: desc, first: 1) {
+    ethBlockNumber
+  }
+}

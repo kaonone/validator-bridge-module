@@ -1,0 +1,16 @@
+query AllLimitMessages($blockNumber: Int!) {
+  limitMessages(where: {ethBlockNumber_gte: $blockNumber}, orderBy: ethBlockNumber, orderDirection: asc) {
+    id
+    minHostTransactionValue
+    maxHostTransactionValue
+    dayHostMaxLimit
+    dayHostMaxLimitForOneAddress
+    maxHostPendingTransactionLimit
+    minGuestTransactionValue
+    maxGuestTransactionValue
+    dayGuestMaxLimit
+    dayGuestMaxLimitForOneAddress
+    maxGuestPendingTransactionLimit
+    ethBlockNumber
+  }
+}
