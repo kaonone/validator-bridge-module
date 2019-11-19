@@ -64,7 +64,7 @@ impl ControllerStorage {
                 let mut queue = queue.to_vec();
                 self.events_queue.append(queue.as_mut());
                 self.events_of_blocked_accounts.remove(&address);
-            },
+            }
             None => log::warn!("can not found account queue for {:?}", address),
         }
     }
@@ -72,18 +72,20 @@ impl ControllerStorage {
     pub fn is_account_blocked(&self, address: Option<Address>) -> bool {
         match address {
             None => false,
-            Some(a) => self.events_of_blocked_accounts.contains_key(&a)
+            Some(a) => self.events_of_blocked_accounts.contains_key(&a),
         }
     }
 
     pub fn put_event_to_account_queue(&mut self, event: Event) {
-        let sender = event.sender().expect("called put_event_to_account_queue for invalid event");
+        let sender = event
+            .sender()
+            .expect("called put_event_to_account_queue for invalid event");
         match self.events_of_blocked_accounts.get(&sender) {
             Some(queue) => {
                 let mut queue = queue.to_vec();
                 queue.push(event);
                 self.events_of_blocked_accounts.insert(sender, queue);
-            },
+            }
             None => log::warn!("can not found account queue for {:?}", sender),
         }
     }
