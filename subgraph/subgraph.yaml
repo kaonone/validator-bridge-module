@@ -13,21 +13,13 @@ dataSources:
       apiVersion: 0.0.3
       language: wasm/assemblyscript
       entities:
-        - RelayMessage
-        - RevertMessage
-        - WithdrawMessage
-        - ApprovedRelayMessage
-        - BridgeStartedMessage
-        - BridgeStoppedMessage
-        - BridgePausedMessage
-        - BridgeResumedMessage
-        - ConfirmMessage
-        - ConfirmWithdrawMessage
-        - CancellationConfirmedMessage
-        - ValidatorAddedMessage
-        - ValidatorRemovedMessage
-        - ProposalCreatedMessage
-        - ProposalApprovedMessage
+        - Account
+        - AccountMessage
+        - BridgeMessage
+        - LimitMessage
+        - Limit
+        - Message
+        - Proposal
       abis:
         - name: Contract
           file: ./abis/Contract.json
@@ -36,28 +28,28 @@ dataSources:
           handler: handleRelayMessage
         - event: RevertMessage(bytes32,address,uint256)
           handler: handleRevertMessage
-        - event: WithdrawMessage(bytes32,bytes32,address,uint256)
+        - event: WithdrawMessage(bytes32,address,bytes32,uint256)
           handler: handleWithdrawMessage
         - event: ApprovedRelayMessage(bytes32,address,bytes32,uint256)
           handler: handleApprovedRelayMessage
-        - event: BridgeStarted(bytes32,address)
+        - event: BridgeStarted(bytes32)
           handler: handleBridgeStarted
-        - event: BridgeStopped(bytes32,address)
+        - event: BridgeStopped(bytes32)
           handler: handleBridgeStopped
         - event: BridgePaused(bytes32)
           handler: handleBridgePaused
         - event: BridgeResumed(bytes32)
           handler: handleBridgeResumed
+        - event: BridgePausedByVolume(bytes32)
+          handler: handleBridgePausedByVolume
+        - event: BridgeStartedByVolume(bytes32)
+          handler: handleBridgeStartedByVolume
         - event: ConfirmMessage(bytes32,address,bytes32,uint256)
           handler: handleConfirmMessage
         - event: ConfirmWithdrawMessage(bytes32,address,bytes32,uint256)
           handler: handleConfirmWithdrawMessage
-        - event: СancellationСonfirmedMessage(bytes32,address,bytes32,uint256)
-          handler: handleСancellationСonfirmedMessage
-        - event: ValidatorAddedMessage(bytes32,bytes32)
-          handler: handleValidatorAddedMessage
-        - event: ValidatorRemovedMessage(bytes32,bytes32)
-          handler: handleValidatorRemovedMessage
+        - event: ConfirmCancelMessage(bytes32,address,bytes32,uint256)
+          handler: handleConfirmCancelMessage
         - event: HostAccountPausedMessage(bytes32,address,uint256)
           handler: handleHostAccountPausedMessage
         - event: HostAccountResumedMessage(bytes32,address,uint256)
@@ -68,8 +60,8 @@ dataSources:
           handler: handleGuestAccountResumedMessage
         - event: SetNewLimits(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleSetNewLimits
-        - event: ProposalCreated(bytes32, address, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint)
-          handler: handleProposalCreatedMessage
+        - event: ProposalCreated(bytes32,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleProposalCreated
         - event: ProposalApproved(bytes32)
-          handler: handleProposalApprovedMessage
+          handler: handleProposalApproved
       file: ./src/mapping.ts
