@@ -43,6 +43,28 @@ type Account @entity {
   ethBlockNumber: BigInt!
 }
 
+type BridgeLimits {
+  inHostTransactionValue: Int!
+  axHostTransactionValue: Int!
+  ayHostMaxLimit: Int!
+  ayHostMaxLimitForOneAddress: Int!
+  axHostPendingTransactionLimit: Int!
+  inGuestTransactionValue: Int!
+  axGuestTransactionValue: Int!
+  ayGuestMaxLimit: Int!
+  ayGuestMaxLimitForOneAddress: Int!
+  axGuestPendingTransactionLimit: Int!
+}
+
+type Proposal @entity {
+  id: ID!
+  address: String!
+  timestamp: BigInt!
+  limits: BridgeLimits!
+  status: ProposalStatus!
+  ethBlockNumber: BigInt!
+}
+
 enum Status {
   PENDING
   WITHDRAW
@@ -82,4 +104,10 @@ enum AccountKind {
 enum AccountStatus {
   ACTIVE
   BLOCKED
+}
+
+enum ProposalStatus {
+  PENDING
+  APPROVED
+  DECLINED
 }
