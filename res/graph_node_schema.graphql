@@ -25,6 +25,15 @@ type Query {
         orderDirection: OrderDirection
         where: ValidatorMessage_filter
     ): [ValidatorMessage!]!
+
+    accountMessage(id: ID!): AccountMessage
+    accountMessages(
+        skip: Int = 0
+        first: Int = 100
+        orderBy: AccountMessage_orderBy
+        orderDirection: OrderDirection
+        where: AccountMessage_filter
+    ): [AccountMessage!]!
 }
 
 type Subscription {
@@ -54,6 +63,15 @@ type Subscription {
         orderDirection: OrderDirection
         where: ValidatorMessage_filter
     ): [ValidatorMessage!]!
+
+    accountMessage(id: ID!): AccountMessage
+    accountMessages(
+        skip: Int = 0
+        first: Int = 100
+        orderBy: AccountMessage_orderBy
+        orderDirection: OrderDirection
+        where: AccountMessage_filter
+    ): [AccountMessage!]!
 }
 
 type Message {
@@ -82,6 +100,16 @@ type ValidatorMessage {
   ethBlockNumber: String!
 }
 
+type AccountMessage {
+  id: ID!
+  action: AccountMessageAction!
+  direction: Direction!
+  ethAddress: String
+  subAddress: String
+  timestamp: String!
+  ethBlockNumber: String!
+}
+
 enum Status {
   PENDING
   WITHDRAW
@@ -105,4 +133,9 @@ enum BridgeMessageAction {
 enum ValidatorMessageAction {
   ADD
   REMOVE
+}
+
+enum AccountMessageAction {
+  PAUSE
+  RESUME
 }

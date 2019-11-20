@@ -58,6 +58,14 @@ dataSources:
           handler: handleValidatorAddedMessage
         - event: ValidatorRemovedMessage(bytes32,bytes32)
           handler: handleValidatorRemovedMessage
+        - event: HostAccountPausedMessage(bytes32,address,uint256)
+          handler: handleHostAccountPausedMessage
+        - event: HostAccountResumedMessage(bytes32,address,uint256)
+          handler: handleHostAccountResumedMessage
+        - event: GuestAccountPausedMessage(bytes32,bytes32,uint256)
+          handler: handleGuestAccountPausedMessage
+        - event: GuestAccountResumedMessage(bytes32,bytes32,uint256)
+          handler: handleGuestAccountResumedMessage
         - event: ProposalCreated(bytes32, address, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint)
           handler: handleProposalCreatedMessage
         - event: ProposalApproved(bytes32)

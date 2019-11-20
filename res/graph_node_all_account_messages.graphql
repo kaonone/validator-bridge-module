@@ -1,0 +1,11 @@
+query AllAccountMessages($blockNumber: Int!) {
+  accountMessages(where: {ethBlockNumber_gte: $blockNumber}, orderBy: ethBlockNumber, orderDirection: asc) {
+    id
+    action
+    direction
+    ethAddress
+    subAddress
+    timestamp
+    ethBlockNumber
+  }
+}

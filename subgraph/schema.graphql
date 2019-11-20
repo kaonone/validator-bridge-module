@@ -24,6 +24,16 @@ type ValidatorMessage @entity {
   ethBlockNumber: BigInt!
 }
 
+type AccountMessage @entity {
+  id: ID!
+  action: AccountMessageAction!
+  direction: Direction!
+  ethAddress: String
+  subAddress: String
+  timestamp: BigInt!
+  ethBlockNumber: BigInt!
+}
+
 type BridgeLimits {
   inHostTransactionValue: Int!
   axHostTransactionValue: Int!
@@ -70,6 +80,11 @@ enum BridgeMessageAction {
 enum ValidatorMessageAction {
   ADD
   REMOVE
+}
+
+enum AccountMessageAction {
+  PAUSE
+  RESUME
 }
 
 enum ProposalStatus {

@@ -498,6 +498,46 @@
     "inputs": [
       { "indexed": false, "name": "messageID", "type": "bytes32" },
       { "indexed": false, "name": "sender", "type": "address" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
+    ],
+    "name": "HostAccountPausedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
+      { "indexed": false, "name": "sender", "type": "address" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
+    ],
+    "name": "HostAccountResumedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
+      { "indexed": false, "name": "sender", "type": "bytes32" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
+    ],
+    "name": "GuestAccountPausedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
+      { "indexed": false, "name": "sender", "type": "bytes32" },
+      { "indexed": false, "name": "timestamp", "type": "uint256" }
+    ],
+    "name": "GuestAccountResumedMessage",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "messageID", "type": "bytes32" },
+      { "indexed": false, "name": "sender", "type": "address" },
       { "indexed": false, "name": "substrateRecipient", "type": "bytes32" },
       { "indexed": false, "name": "amount", "type": "uint256" }
     ],
