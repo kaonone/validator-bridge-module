@@ -1,4 +1,6 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts"
+import { ByteArray } from '@graphprotocol/graph-ts'
+import { crypto } from '@graphprotocol/graph-ts'
 import {
   Contract,
   BridgeStopped,
@@ -19,10 +21,11 @@ import {
   HostAccountResumedMessage,
   GuestAccountPausedMessage,
   GuestAccountResumedMessage,
+  SetNewLimits,
   ProposalCreatedMessage,
   ProposalApprovedMessage,
 } from "../generated/Contract/Contract"
-import { Message, Account, AccountMessage, BridgeMessage, ValidatorMessage, Proposal, BridgeLimits } from "../generated/schema"
+import { Message, Account, AccountMessage, BridgeMessage, ValidatorMessage, LimitMessage, Limit, Proposal, BridgeLimits } from "../generated/schema"
 
 export function handleRelayMessage(event: RelayMessage): void {
   let message = new Message(event.params.messageID.toHex());
@@ -192,6 +195,37 @@ export function handleGuestAccountResumedMessage(event: GuestAccountResumedMessa
   createOrUpdateAccount(subAddress, id, "SUB", "ACTIVE", event.params.timestamp, event.block.number)
 }
 
+export function handleSetNewLimits(event: SetNewLimits): void {
+  let id = generateMessageID("0", event.block.number)
+  let limitMessage = LimitMessage.load(id)
+  if (limitMessage == null) {
+    limitMessage = new LimitMessage(id)
+  }
+  limitMessage.minHostTransactionValue = event.params.minHostTransactionValue
+  limitMessage.maxHostTransactionValue = event.params.maxHostTransactionValue
+  limitMessage.dayHostMaxLimit = event.params.dayHostMaxLimit
+  limitMessage.dayHostMaxLimitForOneAddress = event.params.dayHostMaxLimitForOneAddress
+  limitMessage.maxHostPendingTransactionLimit = event.params.maxHostPendingTransactionLimit
+  limitMessage.minGuestTransactionValue = event.params.minGuestTransactionValue
+  limitMessage.maxGuestTransactionValue = event.params.maxGuestTransactionValue
+  limitMessage.dayGuestMaxLimit = event.params.dayGuestMaxLimit
+  limitMessage.dayGuestMaxLimitForOneAddress = event.params.dayGuestMaxLimitForOneAddress
+  limitMessage.maxGuestPendingTransactionLimit = event.params.maxGuestPendingTransactionLimit
+  limitMessage.ethBlockNumber = event.block.number
+  limitMessage.save()
+
+  createOrUpdateLimit("MIN_HOST_TRANSACTION_VALUE", event.params.minHostTransactionValue, id, event.block.number)
+  createOrUpdateLimit("MAX_HOST_TRANSACTION_VALUE", event.params.maxHostTransactionValue, id, event.block.number)
+  createOrUpdateLimit("DAY_HOST_MAX_LIMIT", event.params.dayHostMaxLimit, id, event.block.number)
+  createOrUpdateLimit("DAY_HOST_MAX_LIMIT_FOR_ONE_ADDRESS", event.params.dayHostMaxLimitForOneAddress, id, event.block.number)
+  createOrUpdateLimit("MAX_HOST_PENDING_TRANSACTION_LIMIT", event.params.maxHostPendingTransactionLimit, id, event.block.number)
+  createOrUpdateLimit("MIN_GUEST_TRANSACTION_VALUE", event.params.minGuestTransactionValue, id, event.block.number)
+  createOrUpdateLimit("MAX_GUEST_TRANSACTION_VALUE", event.params.maxGuestTransactionValue, id, event.block.number)
+  createOrUpdateLimit("DAY_GUEST_MAX_LIMIT", event.params.dayGuestMaxLimit, id, event.block.number)
+  createOrUpdateLimit("DAY_GUEST_MAX_LIMIT_FOR_ONE_ADDRESS", event.params.dayGuestMaxLimitForOneAddress, id, event.block.number)
+  createOrUpdateLimit("MAX_GUEST_PENDING_TRANSACTION_LIMIT", event.params.maxGuestPendingTransactionLimit, id, event.block.number)
+}
+
 function changeMessageStatus(id: String, status: String): void {
   let message = Message.load(id);
   if (message != null) {
@@ -219,4 +253,27 @@ function createOrUpdateAccount(id: String, messageId: String, kind: String, stat
   account.timestamp = timestamp
   account.ethBlockNumber = ethBlockNumber
   account.save()
+}
+
+function createOrUpdateLimit(id: String, value: BigInt, messageID: String, ethBlockNumber: BigInt): void {
+  let limit = Limit.load(id)
+  if (limit == null) {
+    limit = new Limit(id)
+  }
+  limit.value = value
+  limit.messageID = messageID,
+  limit.ethBlockNumber = ethBlockNumber
+  limit.save()
+}
+
+function generateMessageID(salt: String, ethBlockNumber: BigInt): String {
+  let hex = normalizeLength(salt.concat(ethBlockNumber.toHexString().slice(2)))
+  return crypto.keccak256(ByteArray.fromHexString(hex)).toHexString()
+}
+
+function normalizeLength(str: String): String {
+  if (str.length % 2 == 1) {
+    return "0".concat(str)
+  }
+  return str
 }

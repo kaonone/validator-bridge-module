@@ -167,6 +167,30 @@ impl Executor {
                 Event::EthHostAccountResumedMessage(_, _, _, _) => (),
                 Event::EthGuestAccountPausedMessage(_, _, _, _) => (),
                 Event::EthGuestAccountResumedMessage(_, _, _, _) => (),
+                Event::EthSetNewLimits(
+                    message_id,
+                    _min_host_transaction_value,
+                    _max_host_transaction_value,
+                    _day_host_max_limit,
+                    _day_host_max_limit_for_one_address,
+                    _max_host_pending_transaction_limit,
+                    min_guest_transaction_value,
+                    max_guest_transaction_value,
+                    day_guest_max_limit,
+                    day_guest_max_limit_for_one_address,
+                    max_guest_pending_transaction_limit,
+                    _block_number,
+                ) => handle_eth_set_new_limits(
+                    &self.config,
+                    runtime.executor(),
+                    sub_api.clone(),
+                    message_id,
+                    min_guest_transaction_value,
+                    max_guest_transaction_value,
+                    day_guest_max_limit,
+                    day_guest_max_limit_for_one_address,
+                    max_guest_pending_transaction_limit,
+                ),
                 Event::SubRelayMessage(message_id, _block_number) => handle_sub_relay_message(
                     &self.config,
                     runtime.executor(),
@@ -485,6 +509,46 @@ fn handle_eth_validator_removed_message(
                 log::info!(
                     "[substrate] called remove_validator({:?}), message_id: {:?}",
                     validator,
+                    message_id
+                );
+            })
+            .map_err(|_| panic!("the threadpool shut down"))
+        })
+    }));
+}
+
+fn handle_eth_set_new_limits(
+    config: &Config,
+    task_executor: TaskExecutor,
+    sub_api: Arc<Api>,
+    message_id: H256,
+    min_guest_transaction_value: U256,
+    max_guest_transaction_value: U256,
+    day_guest_max_limit: U256,
+    day_guest_max_limit_for_one_address: U256,
+    max_guest_pending_transaction_limit: U256,
+) {
+    let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+
+    task_executor.spawn(lazy(move || {
+        poll_fn(move || {
+            blocking(|| {
+                substrate_transactions::update_limits(
+                    &sub_api,
+                    sub_validator_mnemonic_phrase.clone(),
+                    min_guest_transaction_value.as_u128(),
+                    max_guest_transaction_value.as_u128(),
+                    day_guest_max_limit.as_u128(),
+                    day_guest_max_limit_for_one_address.as_u128(),
+                    max_guest_pending_transaction_limit.as_u128(),
+                );
+                log::info!(
+                    "[substrate] called update_limits({:?}, {:?}, {:?}, {:?}, {:?}), message_id: {:?}",
+                    min_guest_transaction_value,
+                    max_guest_transaction_value,
+                    day_guest_max_limit,
+                    day_guest_max_limit_for_one_address,
+                    max_guest_pending_transaction_limit,
                     message_id
                 );
             })

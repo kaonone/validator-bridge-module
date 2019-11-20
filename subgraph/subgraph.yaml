@@ -66,6 +66,8 @@ dataSources:
           handler: handleGuestAccountPausedMessage
         - event: GuestAccountResumedMessage(bytes32,bytes32,uint256)
           handler: handleGuestAccountResumedMessage
+        - event: SetNewLimits(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleSetNewLimits
         - event: ProposalCreated(bytes32, address, uint, uint, uint, uint, uint, uint, uint, uint, uint, uint)
           handler: handleProposalCreatedMessage
         - event: ProposalApproved(bytes32)

@@ -43,6 +43,28 @@ type Account @entity {
   ethBlockNumber: BigInt!
 }
 
+type LimitMessage @entity {
+  id: ID!
+  minHostTransactionValue: BigInt!
+  maxHostTransactionValue: BigInt!
+  dayHostMaxLimit: BigInt!
+  dayHostMaxLimitForOneAddress: BigInt!
+  maxHostPendingTransactionLimit: BigInt!
+  minGuestTransactionValue: BigInt!
+  maxGuestTransactionValue: BigInt!
+  dayGuestMaxLimit: BigInt!
+  dayGuestMaxLimitForOneAddress: BigInt!
+  maxGuestPendingTransactionLimit: BigInt!
+  ethBlockNumber: BigInt!
+}
+
+type Limit @entity {
+  id: ID!
+  value: BigInt!
+  messageID: String!
+  ethBlockNumber: BigInt!
+}
+
 type BridgeLimits {
   inHostTransactionValue: Int!
   axHostTransactionValue: Int!

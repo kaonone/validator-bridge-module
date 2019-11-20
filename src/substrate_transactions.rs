@@ -102,6 +102,28 @@ pub fn remove_validator(sub_api: &Api, signer_mnemonic_phrase: String, validator
     let _tx_hash = sub_api.send_extrinsic(xthex);
 }
 
+pub fn update_limits(
+    sub_api: &Api,
+    signer_mnemonic_phrase: String,
+    min_guest_transaction_value: u128,
+    max_guest_transaction_value: u128,
+    day_guest_max_limit: u128,
+    day_guest_max_limit_for_one_address: u128,
+    max_guest_pending_transaction_limit: u128,
+) {
+    let xthex = build_update_limits(
+        &sub_api,
+        get_sr25519_pair(&signer_mnemonic_phrase),
+        min_guest_transaction_value,
+        max_guest_transaction_value,
+        day_guest_max_limit,
+        day_guest_max_limit_for_one_address,
+        max_guest_pending_transaction_limit,
+    );
+    //send and watch extrinsic until finalized
+    let _tx_hash = sub_api.send_extrinsic(xthex);
+}
+
 fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
     sr25519::Pair::from_phrase(signer_mnemonic_phrase, None).expect("invalid menemonic phrase")
 }
@@ -289,6 +311,44 @@ fn build_remove_validator(sub_api: &Api, signer: sr25519::Pair, validator: H256)
     let function = Call::Bridge(BridgeCall::remove_validator(sr25519::Public::from_h256(
         validator,
     )));
+    let era = Era::immortal();
+
+    log::debug!("using genesis hash: {:?}", genesis_hash);
+    let raw_payload = (Compact(signer_index), function, era, genesis_hash);
+    let signature = sign_raw_payload(&raw_payload, &signer);
+    let ext = UncheckedExtrinsic::new_signed(
+        signer_index,
+        raw_payload.1,
+        signer.public().into(),
+        signature,
+        era,
+    );
+
+    log::debug!("extrinsic: {:?}", ext);
+
+    let mut xthex: String = ext.encode().to_hex();
+    xthex.insert_str(0, "0x");
+    xthex
+}
+
+fn build_update_limits(
+    sub_api: &Api,
+    signer: sr25519::Pair,
+    min_guest_transaction_value: u128,
+    max_guest_transaction_value: u128,
+    day_guest_max_limit: u128,
+    day_guest_max_limit_for_one_address: u128,
+    max_guest_pending_transaction_limit: u128,
+) -> String {
+    let signer_index = signer_index(sub_api, &signer);
+    let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
+    let function = Call::Bridge(BridgeCall::update_limits(
+        min_guest_transaction_value,
+        max_guest_transaction_value,
+        day_guest_max_limit,
+        day_guest_max_limit_for_one_address,
+        max_guest_pending_transaction_limit,
+    ));
     let era = Era::immortal();
 
     log::debug!("using genesis hash: {:?}", genesis_hash);
