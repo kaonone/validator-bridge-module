@@ -22,7 +22,7 @@ import {
   ProposalCreatedMessage,
   ProposalApprovedMessage,
 } from "../generated/Contract/Contract"
-import { Message, AccountMessage, BridgeMessage, ValidatorMessage, Proposal, BridgeLimits } from "../generated/schema"
+import { Message, Account, AccountMessage, BridgeMessage, ValidatorMessage, Proposal, BridgeLimits } from "../generated/schema"
 
 export function handleRelayMessage(event: RelayMessage): void {
   let message = new Message(event.params.messageID.toHex());
@@ -137,43 +137,59 @@ export function handleProposalApprovedMessage(event: ProposalApprovedMessage): v
 }
 
 export function handleHostAccountPausedMessage(event: HostAccountPausedMessage): void {
-  let account_message = new AccountMessage(event.params.messageID.toHex())
+  let id = event.params.messageID.toHex()
+  let account_message = new AccountMessage(id)
+  let ethAddress = event.params.sender.toHexString()
   account_message.action = "PAUSE"
   account_message.direction = "ETH2SUB"
-  account_message.ethAddress = event.params.sender.toHexString()
+  account_message.ethAddress = ethAddress
   account_message.timestamp = event.params.timestamp
   account_message.ethBlockNumber = event.block.number
   account_message.save()
+
+  createOrUpdateAccount(ethAddress, id, "ETH", "BLOCKED", event.params.timestamp, event.block.number)
 }
 
 export function handleHostAccountResumedMessage(event: HostAccountResumedMessage): void {
-  let account_message = new AccountMessage(event.params.messageID.toHex())
+  let id = event.params.messageID.toHex()
+  let account_message = new AccountMessage(id)
+  let ethAddress = event.params.sender.toHexString()
   account_message.action = "RESUME"
   account_message.direction = "ETH2SUB"
-  account_message.ethAddress = event.params.sender.toHexString()
+  account_message.ethAddress = ethAddress
   account_message.timestamp = event.params.timestamp
   account_message.ethBlockNumber = event.block.number
   account_message.save()
+
+  createOrUpdateAccount(ethAddress, id, "ETH", "ACTIVE", event.params.timestamp, event.block.number)
 }
 
 export function handleGuestAccountPausedMessage(event: GuestAccountPausedMessage): void {
-  let account_message = new AccountMessage(event.params.messageID.toHex())
+  let id = event.params.messageID.toHex()
+  let account_message = new AccountMessage(id)
+  let subAddress = event.params.sender.toHexString()
   account_message.action = "PAUSE"
   account_message.direction = "SUB2ETH"
-  account_message.subAddress = event.params.sender.toHexString()
+  account_message.subAddress = subAddress
   account_message.timestamp = event.params.timestamp
   account_message.ethBlockNumber = event.block.number
   account_message.save()
+
+  createOrUpdateAccount(subAddress, id, "SUB", "BLOCKED", event.params.timestamp, event.block.number)
 }
 
 export function handleGuestAccountResumedMessage(event: GuestAccountResumedMessage): void {
-  let account_message = new AccountMessage(event.params.messageID.toHex())
+  let id = event.params.messageID.toHex()
+  let account_message = new AccountMessage(id)
+  let subAddress = event.params.sender.toHexString()
   account_message.action = "RESUME"
   account_message.direction = "SUB2ETH"
-  account_message.subAddress = event.params.sender.toHexString()
+  account_message.subAddress = subAddress
   account_message.timestamp = event.params.timestamp
   account_message.ethBlockNumber = event.block.number
   account_message.save()
+
+  createOrUpdateAccount(subAddress, id, "SUB", "ACTIVE", event.params.timestamp, event.block.number)
 }
 
 function changeMessageStatus(id: String, status: String): void {
@@ -190,4 +206,17 @@ function changeProposalStatus(id: String, status: String): void {
     proposal.status = status;
     proposal.save();
   }
+}
+
+function createOrUpdateAccount(id: String, messageId: String, kind: String, status: String, timestamp: BigInt, ethBlockNumber: BigInt): void {
+  let account = Account.load(id)
+  if (account == null) {
+    account = new Account(id)
+  }
+  account.messageId = messageId
+  account.kind = kind
+  account.status = status
+  account.timestamp = timestamp
+  account.ethBlockNumber = ethBlockNumber
+  account.save()
 }

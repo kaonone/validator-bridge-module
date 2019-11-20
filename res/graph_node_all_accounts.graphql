@@ -1,0 +1,10 @@
+query AllAccounts($timestamp: String!, $status: AccountStatus!) {
+  accounts(where: {timestamp_gte: $timestamp, status: $status}) {
+    id
+    messageId
+    kind
+    status
+    timestamp
+    ethBlockNumber
+  }
+}

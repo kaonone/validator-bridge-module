@@ -34,6 +34,15 @@ type AccountMessage @entity {
   ethBlockNumber: BigInt!
 }
 
+type Account @entity {
+  id: ID!
+  messageId: String!
+  kind: AccountKind!
+  status: AccountStatus!
+  timestamp: BigInt!
+  ethBlockNumber: BigInt!
+}
+
 type BridgeLimits {
   inHostTransactionValue: Int!
   axHostTransactionValue: Int!
@@ -85,6 +94,16 @@ enum ValidatorMessageAction {
 enum AccountMessageAction {
   PAUSE
   RESUME
+}
+
+enum AccountKind {
+  ETH
+  SUB
+}
+
+enum AccountStatus {
+  ACTIVE
+  BLOCKED
 }
 
 enum ProposalStatus {

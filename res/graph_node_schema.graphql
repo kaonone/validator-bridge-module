@@ -34,6 +34,15 @@ type Query {
         orderDirection: OrderDirection
         where: AccountMessage_filter
     ): [AccountMessage!]!
+
+    account(id: ID!): Account
+    accounts(
+        skip: Int = 0
+        first: Int = 100
+        orderBy: Account_orderBy
+        orderDirection: OrderDirection
+        where: Account_filter
+    ): [Account!]!
 }
 
 type Subscription {
@@ -72,6 +81,15 @@ type Subscription {
         orderDirection: OrderDirection
         where: AccountMessage_filter
     ): [AccountMessage!]!
+
+    account(id: ID!): Account
+    accounts(
+        skip: Int = 0
+        first: Int = 100
+        orderBy: Account_orderBy
+        orderDirection: OrderDirection
+        where: Account_filter
+    ): [Account!]!
 }
 
 type Message {
@@ -110,6 +128,15 @@ type AccountMessage {
   ethBlockNumber: String!
 }
 
+type Account {
+  id: ID!
+  messageId: String!
+  kind: AccountKind!
+  status: AccountStatus!
+  timestamp: String!
+  ethBlockNumber: String!
+}
+
 enum Status {
   PENDING
   WITHDRAW
@@ -138,4 +165,14 @@ enum ValidatorMessageAction {
 enum AccountMessageAction {
   PAUSE
   RESUME
+}
+
+enum AccountKind {
+  ETH
+  SUB
+}
+
+enum AccountStatus {
+  ACTIVE
+  BLOCKED
 }
