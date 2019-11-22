@@ -16,10 +16,13 @@ dataSources:
         - Account
         - AccountMessage
         - BridgeMessage
+        - CandidateValidator
+        - CandidateValidatorMessage
         - LimitMessage
         - Limit
         - Message
         - Proposal
+        - ValidatorsListMessage
       abis:
         - name: Contract
           file: ./abis/Contract.json
@@ -64,4 +67,12 @@ dataSources:
           handler: handleProposalCreated
         - event: ProposalApproved(bytes32)
           handler: handleProposalApproved
+        - event: AddCandidateValidator(bytes32,address,bytes32)
+          handler: handleAddCandidateValidator
+        - event: RemoveCandidateValidator(bytes32,address,bytes32)
+          handler: handleRemoveCandidateValidator
+        - event: ProposalCandidatesValidatorsCreated(bytes32,address[])
+          handler: handleProposalCandidatesValidatorsCreated
+        - event: ChangeValidatorsList(bytes32,address[],uint256,address[],uint256)
+          handler: handleChangeValidatorsList
       file: ./src/mapping.ts

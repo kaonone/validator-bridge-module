@@ -11,6 +11,31 @@
             {
                 "indexed": false,
                 "internalType": "address",
+                "name": "host",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "guest",
+                "type": "bytes32"
+            }
+        ],
+        "name": "AddCandidateValidator",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
                 "name": "sender",
                 "type": "address"
             },
@@ -106,6 +131,43 @@
             }
         ],
         "name": "BridgeStopped",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address[]",
+                "name": "previousValidators",
+                "type": "address[]"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "howManyValidatorsDecide",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address[]",
+                "name": "newValidators",
+                "type": "address[]"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "newHowManyValidatorsDecide",
+                "type": "uint256"
+            }
+        ],
+        "name": "ChangeValidatorsList",
         "type": "event"
     },
     {
@@ -469,6 +531,25 @@
             {
                 "indexed": false,
                 "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address[]",
+                "name": "hosts",
+                "type": "address[]"
+            }
+        ],
+        "name": "ProposalCandidatesValidatorsCreated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
                 "name": "proposalID",
                 "type": "bytes32"
             },
@@ -571,6 +652,31 @@
             }
         ],
         "name": "RelayMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "host",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "guest",
+                "type": "bytes32"
+            }
+        ],
+        "name": "RemoveCandidateValidator",
         "type": "event"
     },
     {
@@ -697,37 +803,6 @@
         "type": "event"
     },
     {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
-                "internalType": "address[]",
-                "name": "previousValidators",
-                "type": "address[]"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "howManyValidatorsDecide",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "address[]",
-                "name": "newvalidators",
-                "type": "address[]"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "newHowManyValidatorsDecide",
-                "type": "uint256"
-            }
-        ],
-        "name": "changeValidatorsList",
-        "type": "event"
-    },
-    {
         "constant": true,
         "inputs": [
             {
@@ -824,23 +899,24 @@
         "type": "function"
     },
     {
-        "constant": false,
+        "constant": true,
         "inputs": [
             {
-                "internalType": "address[]",
-                "name": "newValidators",
-                "type": "address[]"
-            },
-            {
-                "internalType": "uint256",
-                "name": "newHowManyValidatorsDecide",
-                "type": "uint256"
+                "internalType": "address",
+                "name": "host",
+                "type": "address"
             }
         ],
-        "name": "changeValidatorsWithHowMany",
-        "outputs": [],
+        "name": "getGuestAddress",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
         "payable": false,
-        "stateMutability": "nonpayable",
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -912,6 +988,27 @@
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "host",
+                "type": "address"
+            }
+        ],
+        "name": "isCandidateExists",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
             }
         ],
         "payable": false,
@@ -1307,24 +1404,75 @@
                 "type": "bytes32"
             }
         ],
-        "name": "_approvedNewProposal",
+        "name": "approvedNewProposal",
         "outputs": [],
         "payable": false,
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "constant": true,
-        "inputs": [],
-        "name": "bridgeStatus",
-        "outputs": [
+        "constant": false,
+        "inputs": [
             {
-                "name": "",
-                "type": "uint8"
+                "internalType": "address[]",
+                "name": "hosts",
+                "type": "address[]"
             }
         ],
+        "name": "createCandidatesValidatorsProposal",
+        "outputs": [],
         "payable": false,
-        "stateMutability": "view",
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "proposalID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "approveNewValidatorsList",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "host",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "guest",
+                "type": "bytes32"
+            }
+        ],
+        "name": "addCandidate",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "host",
+                "type": "address"
+            }
+        ],
+        "name": "removeCandidate",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
         "type": "function"
     }
 ]

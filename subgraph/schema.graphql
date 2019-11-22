@@ -16,14 +16,6 @@ type BridgeMessage @entity {
   ethBlockNumber: BigInt!
 }
 
-type ValidatorMessage @entity {
-  id: ID!
-  action: ValidatorMessageAction!
-  validator: String!
-  status: Status!
-  ethBlockNumber: BigInt!
-}
-
 type AccountMessage @entity {
   id: ID!
   action: AccountMessageAction!
@@ -82,6 +74,35 @@ type Proposal @entity {
   ethBlockNumber: BigInt!
 }
 
+type CandidateValidatorMessage @entity {
+  id: ID!
+  ethAddress: String!
+  subAddress: String!
+  action: CandidateValidatorMessageAction!
+  ethBlockNumber: BigInt!
+}
+
+type CandidateValidator @entity {
+  id: ID!
+  subAddress: String!
+  active: Boolean!
+  ethBlockNumber: BigInt!
+}
+
+type CandidatesValidatorsProposal @entity {
+  id: ID!
+  status: ProposalStatus!
+  hosts: [String!]!
+  ethBlockNumber: BigInt!
+}
+
+type ValidatorsListMessage @entity {
+  id: ID!
+  newValidators: [String!]!
+  newHowManyValidatorsDecide: BigInt!
+  ethBlockNumber: BigInt!
+}
+
 enum Status {
   PENDING
   WITHDRAW
@@ -103,11 +124,6 @@ enum BridgeMessageAction {
   RESUME
 }
 
-enum ValidatorMessageAction {
-  ADD
-  REMOVE
-}
-
 enum AccountMessageAction {
   PAUSE
   RESUME
@@ -127,4 +143,9 @@ enum ProposalStatus {
   PENDING
   APPROVED
   DECLINED
+}
+
+enum CandidateValidatorMessageAction {
+  ADD
+  REMOVE
 }
