@@ -145,24 +145,6 @@ impl Executor {
                         message_id,
                     )
                 }
-                Event::EthValidatorAddedMessage(message_id, validator, _block_number) => {
-                    handle_eth_validator_added_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                        validator,
-                    )
-                }
-                Event::EthValidatorRemovedMessage(message_id, validator, _block_number) => {
-                    handle_eth_validator_removed_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                        validator,
-                    )
-                }
                 Event::EthHostAccountPausedMessage(_, _, _, _) => (),
                 Event::EthHostAccountResumedMessage(_, _, _, _) => (),
                 Event::EthGuestAccountPausedMessage(_, _, _, _) => (),
@@ -449,66 +431,6 @@ fn handle_eth_withdraw_message(
                     message_id,
                 );
                 log::info!("[substrate] called confirm_transfer({:?})", message_id);
-            })
-            .map_err(|_| panic!("the threadpool shut down"))
-        })
-    }));
-}
-
-fn handle_eth_validator_added_message(
-    config: &Config,
-    task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
-    message_id: H256,
-    validator: H256,
-) {
-    let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
-    let validator = primitives::H256::from_slice(&validator.to_fixed_bytes());
-    let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
-
-    task_executor.spawn(lazy(move || {
-        poll_fn(move || {
-            blocking(|| {
-                substrate_transactions::add_validator(
-                    &sub_api,
-                    sub_validator_mnemonic_phrase.clone(),
-                    validator,
-                );
-                log::info!(
-                    "[substrate] called add_validator({:?}), message_id: {:?}",
-                    validator,
-                    message_id
-                );
-            })
-            .map_err(|_| panic!("the threadpool shut down"))
-        })
-    }));
-}
-
-fn handle_eth_validator_removed_message(
-    config: &Config,
-    task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
-    message_id: H256,
-    validator: H256,
-) {
-    let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
-    let validator = primitives::H256::from_slice(&validator.to_fixed_bytes());
-    let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
-
-    task_executor.spawn(lazy(move || {
-        poll_fn(move || {
-            blocking(|| {
-                substrate_transactions::remove_validator(
-                    &sub_api,
-                    sub_validator_mnemonic_phrase.clone(),
-                    validator,
-                );
-                log::info!(
-                    "[substrate] called remove_validator({:?}), message_id: {:?}",
-                    validator,
-                    message_id
-                );
             })
             .map_err(|_| panic!("the threadpool shut down"))
         })

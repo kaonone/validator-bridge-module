@@ -32,9 +32,6 @@ pub enum Event {
     EthRevertMessage(MessageId, EthAddress, Amount, BlockNumber),
     EthWithdrawMessage(MessageId, BlockNumber),
 
-    EthValidatorAddedMessage(MessageId, SubAddress, BlockNumber),
-    EthValidatorRemovedMessage(MessageId, SubAddress, BlockNumber),
-
     EthHostAccountPausedMessage(MessageId, EthAddress, Timestamp, BlockNumber),
     EthHostAccountResumedMessage(MessageId, EthAddress, Timestamp, BlockNumber),
     EthGuestAccountPausedMessage(MessageId, SubAddress, Timestamp, BlockNumber),
@@ -113,8 +110,6 @@ impl Event {
             Self::EthApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::EthRevertMessage(message_id, _, _, _) => message_id,
             Self::EthWithdrawMessage(message_id, _) => message_id,
-            Self::EthValidatorAddedMessage(message_id, _, _) => message_id,
-            Self::EthValidatorRemovedMessage(message_id, _, _) => message_id,
             Self::EthHostAccountPausedMessage(message_id, _, _, _) => message_id,
             Self::EthHostAccountResumedMessage(message_id, _, _, _) => message_id,
             Self::EthGuestAccountPausedMessage(message_id, _, _, _) => message_id,
@@ -140,8 +135,6 @@ impl Event {
             Self::EthApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::EthRevertMessage(_, _, _, block_number) => *block_number,
             Self::EthWithdrawMessage(_, block_number) => *block_number,
-            Self::EthValidatorAddedMessage(_, _, block_number) => *block_number,
-            Self::EthValidatorRemovedMessage(_, _, block_number) => *block_number,
             Self::EthHostAccountPausedMessage(_, _, _, block_number) => *block_number,
             Self::EthHostAccountResumedMessage(_, _, _, block_number) => *block_number,
             Self::EthGuestAccountPausedMessage(_, _, _, block_number) => *block_number,
