@@ -15,6 +15,7 @@ struct EventListener {
     bridge_messages_offset: u64,
     account_messages_offset: u64,
     limit_messages_offset: u64,
+    validators_list_messages_offset: u64,
 }
 
 #[derive(GraphQLQuery)]
@@ -97,6 +98,22 @@ struct MaxBlockNumberOfLimitMessages;
 )]
 struct AllLimitMessages;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "res/graph_node_schema.graphql",
+    query_path = "res/graph_node_max_block_number_of_validators_list_messages.graphql",
+    response_derives = "Debug"
+)]
+struct MaxBlockNumberOfValidatorsListMessages;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "res/graph_node_schema.graphql",
+    query_path = "res/graph_node_all_validators_list_messages.graphql",
+    response_derives = "Debug,Clone"
+)]
+struct AllValidatorsListMessages;
+
 pub fn spawn(config: Config, controller_tx: Sender<Event>) -> thread::JoinHandle<()> {
     thread::Builder::new()
         .name("graph_node_event_listener".to_string())
@@ -116,6 +133,7 @@ impl EventListener {
             bridge_messages_offset: 0,
             account_messages_offset: 0,
             limit_messages_offset: 0,
+            validators_list_messages_offset: 0,
         }
     }
 
@@ -196,6 +214,19 @@ impl EventListener {
                 );
                 Ok(())
             });
+        let _: Result<(), reqwest::Error> = self
+            .get_max_block_number_of_validators_list_messages()
+            .and_then(|block_number| {
+                self.update_validators_list_messages_offset(block_number);
+                Ok(())
+            })
+            .or_else(|err| {
+                log::warn!(
+                    "can not get max block number of validators_list_messages, reason: {:?}",
+                    err
+                );
+                Ok(())
+            });
     }
 
     fn handle_unfinalized_events(&self) {
@@ -254,11 +285,23 @@ impl EventListener {
             })
             .map_err(|_: reqwest::Error| ())
             .expect("can not get all_limit_messages");
+        let mut all_validators_list_messages = self
+            .get_all_validators_list_messages()
+            .or_else(|err| {
+                log::warn!(
+                    "can not get all_validators_list_messages, reason: {:?}",
+                    err
+                );
+                Ok(vec![])
+            })
+            .map_err(|_: reqwest::Error| ())
+            .expect("can not get all_validators_list_messages");
 
         events.append(all_messages.as_mut());
         events.append(all_bridge_messages.as_mut());
         events.append(all_account_messages.as_mut());
         events.append(all_limit_messages.as_mut());
+        events.append(all_validators_list_messages.as_mut());
         events.sort_by(|a, b| a.block_number().cmp(&b.block_number()));
         self.send_events(events);
     }
@@ -370,6 +413,33 @@ impl EventListener {
             Ok(self.limit_messages_offset)
         } else {
             Ok(limit_messages[0]
+                .eth_block_number
+                .parse()
+                .expect("can not parse eth_block_number"))
+        }
+    }
+
+    fn get_max_block_number_of_validators_list_messages(&self) -> Result<u64, reqwest::Error> {
+        let request_body = MaxBlockNumberOfValidatorsListMessages::build_query(
+            max_block_number_of_validators_list_messages::Variables {
+                block_number: self.validators_list_messages_offset as i64,
+            },
+        );
+        let client = reqwest::Client::new();
+        let mut res = client
+            .post(&self.config.graph_node_api_url)
+            .json(&request_body)
+            .send()?;
+        let response_body: Response<max_block_number_of_validators_list_messages::ResponseData> =
+            res.json()?;
+        let validators_list_messages = response_body
+            .data
+            .expect("can not get response_data")
+            .validators_list_messages;
+        if validators_list_messages.is_empty() {
+            Ok(self.validators_list_messages_offset)
+        } else {
+            Ok(validators_list_messages[0]
                 .eth_block_number
                 .parse()
                 .expect("can not parse eth_block_number"))
@@ -532,6 +602,39 @@ impl EventListener {
         Ok(limit_messages.iter().map(Into::into).collect())
     }
 
+    fn get_all_validators_list_messages(&mut self) -> Result<Vec<Event>, reqwest::Error> {
+        let request_body =
+            AllValidatorsListMessages::build_query(all_validators_list_messages::Variables {
+                block_number: self.validators_list_messages_offset as i64,
+            });
+        let client = reqwest::Client::new();
+        let mut res = client
+            .post(&self.config.graph_node_api_url)
+            .json(&request_body)
+            .send()?;
+        let response_body: Response<all_validators_list_messages::ResponseData> = res.json()?;
+        let validators_list_messages = response_body
+            .data
+            .expect("can not get response_data")
+            .validators_list_messages;
+
+        validators_list_messages
+            .iter()
+            .map(|validators_list_message| {
+                validators_list_message
+                    .eth_block_number
+                    .parse()
+                    .expect("can not parse eth_block_number")
+            })
+            .max()
+            .and_then(|eth_block_number| {
+                self.update_validators_list_messages_offset(eth_block_number);
+                Some(eth_block_number)
+            });
+
+        Ok(validators_list_messages.iter().map(Into::into).collect())
+    }
+
     fn get_events_for_blocked_accounts(&self) -> Result<Vec<Event>, reqwest::Error> {
         let request_body = AllAccounts::build_query(all_accounts::Variables {
             timestamp: begin_of_this_day().to_string(),
@@ -572,6 +675,14 @@ impl EventListener {
     fn update_limit_messages_offset(&mut self, block_number: u64) {
         self.limit_messages_offset = block_number;
         log::debug!("limit_messages_offset: {:?}", self.limit_messages_offset);
+    }
+
+    fn update_validators_list_messages_offset(&mut self, block_number: u64) {
+        self.validators_list_messages_offset = block_number;
+        log::debug!(
+            "validators_list_messages_offset: {:?}",
+            self.validators_list_messages_offset
+        );
     }
 }
 
@@ -789,6 +900,25 @@ impl From<&all_limit_messages::AllLimitMessagesLimitMessages> for Event {
             parse_u128(&message.day_guest_max_limit).into(),
             parse_u128(&message.day_guest_max_limit_for_one_address).into(),
             parse_u128(&message.max_guest_pending_transaction_limit).into(),
+            parse_u128(&message.eth_block_number),
+        )
+    }
+}
+
+impl From<&all_validators_list_messages::AllValidatorsListMessagesValidatorsListMessages>
+    for Event
+{
+    fn from(
+        message: &all_validators_list_messages::AllValidatorsListMessagesValidatorsListMessages,
+    ) -> Self {
+        Event::EthValidatorsListMessage(
+            parse_h256(&message.id),
+            message
+                .new_validators
+                .iter()
+                .map(|s| parse_h256(&s))
+                .collect(),
+            parse_u256(&message.new_how_many_validators_decide),
             parse_u128(&message.eth_block_number),
         )
     }

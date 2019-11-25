@@ -52,6 +52,8 @@ pub enum Event {
         BlockNumber,
     ),
 
+    EthValidatorsListMessage(MessageId, Vec<SubAddress>, Amount, BlockNumber),
+
     SubRelayMessage(MessageId, BlockNumber),
     SubApprovedRelayMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
     SubBurnedMessage(MessageId, SubAddress, EthAddress, Amount, BlockNumber),
@@ -115,6 +117,7 @@ impl Event {
             Self::EthGuestAccountPausedMessage(message_id, _, _, _) => message_id,
             Self::EthGuestAccountResumedMessage(message_id, _, _, _) => message_id,
             Self::EthSetNewLimits(message_id, _, _, _, _, _, _, _, _, _, _, _) => message_id,
+            Self::EthValidatorsListMessage(message_id, _, _, _) => message_id,
             Self::SubRelayMessage(message_id, _) => message_id,
             Self::SubApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::SubBurnedMessage(message_id, _, _, _, _) => message_id,
@@ -140,6 +143,7 @@ impl Event {
             Self::EthGuestAccountPausedMessage(_, _, _, block_number) => *block_number,
             Self::EthGuestAccountResumedMessage(_, _, _, block_number) => *block_number,
             Self::EthSetNewLimits(_, _, _, _, _, _, _, _, _, _, _, block_number) => *block_number,
+            Self::EthValidatorsListMessage(_, _, _, block_number) => *block_number,
             Self::SubRelayMessage(_, block_number) => *block_number,
             Self::SubApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::SubBurnedMessage(_, _, _, _, block_number) => *block_number,
