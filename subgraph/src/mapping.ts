@@ -40,7 +40,7 @@ import {
   LimitMessage,
   Limit,
   Message,
-  Proposal,
+  LimitProposal,
   CandidatesValidatorsProposal,
   ValidatorsListMessage,
 } from "../generated/schema"
@@ -136,7 +136,7 @@ export function handleBridgeStartedByVolume(event: BridgeStartedByVolume): void 
 }
 
 export function handleProposalCreated(event: ProposalCreated): void {
-  let proposal = new Proposal(event.params.proposalID.toHex());
+  let proposal = new LimitProposal(event.params.proposalID.toHex());
   proposal.ethAddress = event.params.sender.toHexString();
   proposal.status = "PENDING";
   proposal.minHostTransactionValue = event.params.minHostTransactionValue;
@@ -319,7 +319,7 @@ function changeMessageStatus(id: String, status: String): void {
 }
 
 function changeProposalStatus(id: String, status: String): void {
-  let proposal = Proposal.load(id);
+  let proposal = LimitProposal.load(id);
   if (proposal != null) {
     proposal.status = status;
     proposal.save();
@@ -346,6 +346,7 @@ function createOrUpdateLimit(id: String, value: BigInt, messageID: String, ethBl
   }
   limit.value = value;
   limit.messageID = messageID;
+  limit.kind = messageID;
   limit.ethBlockNumber = ethBlockNumber;
   limit.save();
 }

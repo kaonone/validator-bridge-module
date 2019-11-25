@@ -52,12 +52,13 @@ type LimitMessage @entity {
 
 type Limit @entity {
   id: ID!
+  kind: LimitKind!
   value: BigInt!
   messageID: String!
   ethBlockNumber: BigInt!
 }
 
-type Proposal @entity {
+type LimitProposal @entity {
   id: ID!
   ethAddress: String!
   status: ProposalStatus!
@@ -148,4 +149,17 @@ enum ProposalStatus {
 enum CandidateValidatorMessageAction {
   ADD
   REMOVE
+}
+
+enum LimitKind {
+  MIN_HOST_TRANSACTION_VALUE
+  MAX_HOST_TRANSACTION_VALUE
+  DAY_HOST_MAX_LIMIT
+  DAY_HOST_MAX_LIMIT_FOR_ONE_ADDRESS
+  MAX_HOST_PENDING_TRANSACTION_LIMIT
+  MIN_GUEST_TRANSACTION_VALUE
+  MAX_GUEST_TRANSACTION_VALUE
+  DAY_GUEST_MAX_LIMIT
+  DAY_GUEST_MAX_LIMIT_FOR_ONE_ADDRESS
+  MAX_GUEST_PENDING_TRANSACTION_LIMIT
 }
