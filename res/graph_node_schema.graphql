@@ -52,6 +52,15 @@ type Query {
         orderDirection: OrderDirection
         where: Limit_filter
     ): [Limit!]!
+
+    validatorsListMessage(id: ID!): ValidatorsListMessage
+    validatorsListMessages(
+        skip: Int = 0
+        first: Int = 100
+        orderBy: ValidatorsListMessage_orderBy
+        orderDirection: OrderDirection
+        where: ValidatorsListMessage_filter
+    ): [ValidatorsListMessage!]!
 }
 
 type Subscription {
@@ -108,6 +117,15 @@ type Subscription {
         orderDirection: OrderDirection
         where: Limit_filter
     ): [Limit!]!
+
+    validatorsListMessage(id: ID!): ValidatorsListMessage
+    validatorsListMessages(
+        skip: Int = 0
+        first: Int = 100
+        orderBy: ValidatorsListMessage_orderBy
+        orderDirection: OrderDirection
+        where: ValidatorsListMessage_filter
+    ): [ValidatorsListMessage!]!
 }
 
 type Message {
@@ -164,8 +182,16 @@ type LimitMessage {
 
 type Limit {
   id: ID!
+  kind: LimitKind!
   value: String!
   messageID: String!
+  ethBlockNumber: String!
+}
+
+type ValidatorsListMessage {
+  id: ID!
+  newValidators: [String!]!
+  newHowManyValidatorsDecide: String!
   ethBlockNumber: String!
 }
 
@@ -202,4 +228,17 @@ enum AccountKind {
 enum AccountStatus {
   ACTIVE
   BLOCKED
+}
+
+enum LimitKind {
+  MIN_HOST_TRANSACTION_VALUE
+  MAX_HOST_TRANSACTION_VALUE
+  DAY_HOST_MAX_LIMIT
+  DAY_HOST_MAX_LIMIT_FOR_ONE_ADDRESS
+  MAX_HOST_PENDING_TRANSACTION_LIMIT
+  MIN_GUEST_TRANSACTION_VALUE
+  MAX_GUEST_TRANSACTION_VALUE
+  DAY_GUEST_MAX_LIMIT
+  DAY_GUEST_MAX_LIMIT_FOR_ONE_ADDRESS
+  MAX_GUEST_PENDING_TRANSACTION_LIMIT
 }
