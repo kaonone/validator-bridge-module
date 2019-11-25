@@ -1,5 +1,0 @@
-query MaxBlockNumberOfValidatorMessages($blockNumber: Int!) {
-  validatorMessages(where: {ethBlockNumber_gte: $blockNumber}, orderBy: ethBlockNumber, orderDirection: desc, first: 1) {
-    ethBlockNumber
-  }
-}

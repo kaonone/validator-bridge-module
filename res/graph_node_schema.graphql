@@ -17,15 +17,6 @@ type Query {
         where: BridgeMessage_filter
     ): [BridgeMessage!]!
 
-    validatorMessage(id: ID!): ValidatorMessage
-    validatorMessages(
-        skip: Int = 0
-        first: Int = 100
-        orderBy: ValidatorMessage_orderBy
-        orderDirection: OrderDirection
-        where: ValidatorMessage_filter
-    ): [ValidatorMessage!]!
-
     accountMessage(id: ID!): AccountMessage
     accountMessages(
         skip: Int = 0
@@ -82,15 +73,6 @@ type Subscription {
         where: BridgeMessage_filter
     ): [BridgeMessage!]!
 
-    validatorMessage(id: ID!): ValidatorMessage
-    validatorMessages(
-        skip: Int = 0
-        first: Int = 100
-        orderBy: ValidatorMessage_orderBy
-        orderDirection: OrderDirection
-        where: ValidatorMessage_filter
-    ): [ValidatorMessage!]!
-
     accountMessage(id: ID!): AccountMessage
     accountMessages(
         skip: Int = 0
@@ -142,14 +124,6 @@ type BridgeMessage {
   id: ID!
   action: BridgeMessageAction!
   sender: String
-  status: Status!
-  ethBlockNumber: String!
-}
-
-type ValidatorMessage {
-  id: ID!
-  action: ValidatorMessageAction!
-  validator: String!
   status: Status!
   ethBlockNumber: String!
 }
@@ -213,11 +187,6 @@ enum BridgeMessageAction {
   START
   PAUSE
   RESUME
-}
-
-enum ValidatorMessageAction {
-  ADD
-  REMOVE
 }
 
 enum AccountMessageAction {
