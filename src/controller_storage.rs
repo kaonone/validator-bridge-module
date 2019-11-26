@@ -13,7 +13,7 @@ pub struct ControllerStorage {
     events_of_blocked_accounts: HashMap<Address, Vec<Event>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
     Duplicate,
 }
@@ -88,5 +88,104 @@ impl ControllerStorage {
             }
             None => log::warn!("can not found account queue for {:?}", sender),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use web3::types::H160;
+
+    const MESSAGE_ID: [u8; 32] = [0; 32];
+    const MESSAGE_ID2: [u8; 32] = [1; 32];
+    const ETH_ADDRESS: [u8; 20] = [7; 20];
+    const SUB_ADDRESS: [u8; 32] = [7; 32];
+    const AMOUNT: u128 = 0;
+    const BLOCK_NUMBER: u128 = 0;
+
+    #[test]
+    fn put_event_tests() {
+        let mut storage = ControllerStorage::new();
+        let event = Event::EthBridgePausedMessage(H256::from_slice(&MESSAGE_ID), BLOCK_NUMBER);
+        assert_eq!(Ok(()), storage.put_event(&event));
+        assert_eq!(Err(Error::Duplicate), storage.put_event(&event));
+    }
+
+    #[test]
+    fn event_queue_tests() {
+        let mut storage = ControllerStorage::new();
+        let event = Event::EthBridgePausedMessage(H256::from_slice(&MESSAGE_ID), BLOCK_NUMBER);
+        let event2 = Event::EthBridgePausedMessage(H256::from_slice(&MESSAGE_ID2), BLOCK_NUMBER);
+
+        let empty_vec: Vec<Event> = vec![];
+        let vec_with_events = vec![event.clone(), event2.clone()];
+
+        assert_eq!(
+            empty_vec,
+            storage.iter_events_queue().cloned().collect::<Vec<_>>()
+        );
+        storage.put_event_to_queue(event);
+        storage.put_event_to_queue(event2);
+        assert_eq!(
+            vec_with_events,
+            storage.iter_events_queue().cloned().collect::<Vec<_>>()
+        );
+        storage.clear_events_queue();
+        assert_eq!(
+            empty_vec,
+            storage.iter_events_queue().cloned().collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn blocking_and_unblocking_account_tests() {
+        let mut storage = ControllerStorage::new();
+        let address = H160::from_slice(&ETH_ADDRESS);
+        let event = Event::EthRelayMessage(
+            H256::from_slice(&MESSAGE_ID),
+            address,
+            H256::from_slice(&SUB_ADDRESS),
+            AMOUNT.into(),
+            BLOCK_NUMBER,
+        );
+        let event2 = Event::EthRelayMessage(
+            H256::from_slice(&MESSAGE_ID2),
+            address,
+            H256::from_slice(&SUB_ADDRESS),
+            AMOUNT.into(),
+            BLOCK_NUMBER,
+        );
+        let empty_vec: Vec<Event> = vec![];
+        let vec_with_events = vec![event.clone(), event2.clone()];
+
+        assert_eq!(
+            empty_vec,
+            storage.iter_events_queue().cloned().collect::<Vec<_>>()
+        );
+        assert_eq!(
+            false,
+            storage.is_account_blocked(Some(Address::Eth(address)))
+        );
+        storage.block_account(Address::Eth(address));
+        assert_eq!(
+            true,
+            storage.is_account_blocked(Some(Address::Eth(address)))
+        );
+
+        storage.put_event_to_account_queue(event);
+        storage.put_event_to_account_queue(event2);
+        assert_eq!(
+            empty_vec,
+            storage.iter_events_queue().cloned().collect::<Vec<_>>()
+        );
+        storage.unblock_account(Address::Eth(address));
+        assert_eq!(
+            false,
+            storage.is_account_blocked(Some(Address::Eth(address)))
+        );
+        assert_eq!(
+            vec_with_events,
+            storage.iter_events_queue().cloned().collect::<Vec<_>>()
+        );
     }
 }
