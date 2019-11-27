@@ -1,1024 +1,1330 @@
 [
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "validatorsGeneration",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "uint256" }],
-    "name": "allOperations",
-    "outputs": [{ "name": "", "type": "bytes32" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "bytes32" }],
-    "name": "votesMaskByOperation",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "address" }],
-    "name": "validatorsIndices",
-    "outputs": [{ "name": "", "type": "uint8" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "howManyValidatorsDecide",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "bytes32" }],
-    "name": "votesCountByOperation",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "bytes32" }],
-    "name": "allOperationsIndicies",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "uint256" }],
-    "name": "validators",
-    "outputs": [{ "name": "", "type": "address" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "previousvalidators", "type": "address[]" },
-      {
-        "indexed": false,
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "recipient",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "ApprovedRelayMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BridgePaused",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BridgePausedByVolume",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BridgeResumed",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BridgeStarted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BridgeStartedByVolume",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BridgeStopped",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "recipient",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "ConfirmCancelMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "recipient",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "ConfirmMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "recipient",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "ConfirmWithdrawMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "recipient",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "timestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "GuestAccountPausedMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "recipient",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "timestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "GuestAccountResumedMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "timestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "HostAccountPausedMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "timestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "HostAccountResumedMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "operation",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "lastCanceller",
+                "type": "address"
+            }
+        ],
+        "name": "OperationCancelled",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "operation",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "howMany",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "validatorsCount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "proposer",
+                "type": "address"
+            }
+        ],
+        "name": "OperationCreated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "operation",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "votes",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "validatorsCount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "downvoter",
+                "type": "address"
+            }
+        ],
+        "name": "OperationDownvoted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "operation",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "howMany",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "validatorsCount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "performer",
+                "type": "address"
+            }
+        ],
+        "name": "OperationPerformed",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "operation",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "votes",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "howMany",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "validatorsCount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "upvoter",
+                "type": "address"
+            }
+        ],
+        "name": "OperationUpvoted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "proposalID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "ProposalApproved",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "proposalID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "minHostTransactionValue",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "maxHostTransactionValue",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dayHostMaxLimit",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dayHostMaxLimitForOneAddress",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "maxHostPendingTransactionLimit",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "minGuestTransactionValue",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "maxGuestTransactionValue",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dayGuestMaxLimit",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dayGuestMaxLimitForOneAddress",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "maxGuestPendingTransactionLimit",
+                "type": "uint256"
+            }
+        ],
+        "name": "ProposalCreated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "recipient",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "RelayMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "RevertMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "minHostTransactionValue",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "maxHostTransactionValue",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dayHostMaxLimit",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dayHostMaxLimitForOneAddress",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "maxHostPendingTransactionLimit",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "minGuestTransactionValue",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "maxGuestTransactionValue",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dayGuestMaxLimit",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "dayGuestMaxLimitForOneAddress",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "maxGuestPendingTransactionLimit",
+                "type": "uint256"
+            }
+        ],
+        "name": "SetNewLimits",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "recepient",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "sender",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "WithdrawMessage",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address[]",
+                "name": "previousValidators",
+                "type": "address[]"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "howManyValidatorsDecide",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address[]",
+                "name": "newvalidators",
+                "type": "address[]"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "newHowManyValidatorsDecide",
+                "type": "uint256"
+            }
+        ],
+        "name": "changeValidatorsList",
+        "type": "event"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "allOperations",
+        "outputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "allOperationsCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "allOperationsIndicies",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "cancelAllPending",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "operation",
+                "type": "bytes32"
+            }
+        ],
+        "name": "cancelPending",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address[]",
+                "name": "newValidators",
+                "type": "address[]"
+            }
+        ],
+        "name": "changeValidators",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "address[]",
+                "name": "newValidators",
+                "type": "address[]"
+            },
+            {
+                "internalType": "uint256",
+                "name": "newHowManyValidatorsDecide",
+                "type": "uint256"
+            }
+        ],
+        "name": "changeValidatorsWithHowMany",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "getLimits",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
         "name": "howManyValidatorsDecide",
-        "type": "uint256"
-      },
-      { "indexed": false, "name": "newvalidators", "type": "address[]" },
-      {
-        "indexed": false,
-        "name": "newHowManyValidatorsDecide",
-        "type": "uint256"
-      }
-    ],
-    "name": "ValidatorShipTransferred",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "howMany", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "proposer", "type": "address" }
-    ],
-    "name": "OperationCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "votes", "type": "uint256" },
-      { "indexed": false, "name": "howMany", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "upvoter", "type": "address" }
-    ],
-    "name": "OperationUpvoted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "howMany", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "performer", "type": "address" }
-    ],
-    "name": "OperationPerformed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "votes", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "downvoter", "type": "address" }
-    ],
-    "name": "OperationDownvoted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "lastCanceller", "type": "address" }
-    ],
-    "name": "OperationCancelled",
-    "type": "event"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "wallet", "type": "address" }],
-    "name": "isExistValidator",
-    "outputs": [{ "name": "", "type": "bool" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "validatorsCount",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "allOperationsCount",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "operation", "type": "bytes32" }],
-    "name": "cancelPending",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [],
-    "name": "cancelAllPending",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "newvalidators", "type": "address[]" }],
-    "name": "transferValidatorShip",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "newvalidators", "type": "address[]" },
-      { "name": "newhowManyValidatorsDecide", "type": "uint256" }
-    ],
-    "name": "transferValidatorShipWithHowMany",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "wallet", "type": "address" }],
-    "name": "isExistValidator",
-    "outputs": [{ "name": "", "type": "bool" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "newValidators", "type": "address[]" },
-      { "name": "newHowManyValidatorsDecide", "type": "uint256" }
-    ],
-    "name": "transferValidatorShipWithHowMany",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "allOperationsCount",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [],
-    "name": "cancelAllPending",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "uint256" }],
-    "name": "validators",
-    "outputs": [{ "name": "", "type": "address" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "howManyValidatorsDecide",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "uint256" }],
-    "name": "allOperations",
-    "outputs": [{ "name": "", "type": "bytes32" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "bytes32" }],
-    "name": "votesMaskByOperation",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "validatorsGeneration",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "operation", "type": "bytes32" }],
-    "name": "cancelPending",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "bytes32" }],
-    "name": "votesCountByOperation",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "address" }],
-    "name": "validatorsIndices",
-    "outputs": [{ "name": "", "type": "uint8" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "newValidators", "type": "address[]" }],
-    "name": "transferValidatorShip",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "bytes32" }],
-    "name": "allOperationsIndicies",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "validatorsCount",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "name": "_token", "type": "address" }],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" },
-      { "indexed": false, "name": "recipient", "type": "bytes32" },
-      { "indexed": false, "name": "amount", "type": "uint256" }
-    ],
-    "name": "RelayMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" },
-      { "indexed": false, "name": "amount", "type": "uint256" }
-    ],
-    "name": "RevertMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "substrateSender", "type": "bytes32" },
-      { "indexed": false, "name": "recipient", "type": "address" },
-      { "indexed": false, "name": "amount", "type": "uint256" }
-    ],
-    "name": "WithdrawMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" },
-      { "indexed": false, "name": "recipient", "type": "bytes32" },
-      { "indexed": false, "name": "amount", "type": "uint256" }
-    ],
-    "name": "ApprovedRelayMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" }
-    ],
-    "name": "BridgeStoppedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" }
-    ],
-    "name": "BridgeStartedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" }
-    ],
-    "name": "BridgePausedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" }
-    ],
-    "name": "BridgeResumedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "name": "messageID",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "name": "validatorAddress",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ValidatorAddedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "name": "messageID",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "name": "validatorAddress",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ValidatorRemovedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" },
-      { "indexed": false, "name": "substrateRecipient", "type": "bytes32" },
-      { "indexed": false, "name": "amount", "type": "uint256" }
-    ],
-    "name": "СancellationСonfirmedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" },
-      { "indexed": false, "name": "substrateRecipient", "type": "bytes32" },
-      { "indexed": false, "name": "amount", "type": "uint256" }
-    ],
-    "name": "ConfirmWithdrawMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" },
-      { "indexed": false, "name": "timestamp", "type": "uint256" }
-    ],
-    "name": "HostAccountPausedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" },
-      { "indexed": false, "name": "timestamp", "type": "uint256" }
-    ],
-    "name": "HostAccountResumedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "bytes32" },
-      { "indexed": false, "name": "timestamp", "type": "uint256" }
-    ],
-    "name": "GuestAccountPausedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "bytes32" },
-      { "indexed": false, "name": "timestamp", "type": "uint256" }
-    ],
-    "name": "GuestAccountResumedMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "messageID", "type": "bytes32" },
-      { "indexed": false, "name": "sender", "type": "address" },
-      { "indexed": false, "name": "substrateRecipient", "type": "bytes32" },
-      { "indexed": false, "name": "amount", "type": "uint256" }
-    ],
-    "name": "ConfirmMessage",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "previousValidators", "type": "address[]" },
-      {
-        "indexed": false,
-        "name": "howManyValidatorsDecide",
-        "type": "uint256"
-      },
-      { "indexed": false, "name": "newvalidators", "type": "address[]" },
-      {
-        "indexed": false,
-        "name": "newHowManyValidatorsDecide",
-        "type": "uint256"
-      }
-    ],
-    "name": "ValidatorShipTransferred",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "howMany", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "proposer", "type": "address" }
-    ],
-    "name": "OperationCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "votes", "type": "uint256" },
-      { "indexed": false, "name": "howMany", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "upvoter", "type": "address" }
-    ],
-    "name": "OperationUpvoted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "howMany", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "performer", "type": "address" }
-    ],
-    "name": "OperationPerformed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "votes", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "downvoter", "type": "address" }
-    ],
-    "name": "OperationDownvoted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "lastCanceller", "type": "address" }
-    ],
-    "name": "OperationCancelled",
-    "type": "event"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "amount", "type": "uint256" },
-      { "name": "substrateAddress", "type": "bytes32" }
-    ],
-    "name": "setTransfer",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "messageID", "type": "bytes32" }],
-    "name": "revertTransfer",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "messageID", "type": "bytes32" },
-      { "name": "spender", "type": "address" },
-      { "name": "substrateAddress", "type": "bytes32" },
-      { "name": "availableAmount", "type": "uint256" }
-    ],
-    "name": "approveTransfer",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "messageID", "type": "bytes32" }],
-    "name": "confirmTransfer",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "messageID", "type": "bytes32" },
-      { "name": "substrateSender", "type": "bytes32" },
-      { "name": "recipient", "type": "address" },
-      { "name": "availableAmount", "type": "uint256" }
-    ],
-    "name": "withdrawTransfer",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": true, "name": "from", "type": "address" },
-      { "indexed": true, "name": "to", "type": "address" },
-      { "indexed": false, "name": "value", "type": "uint256" }
-    ],
-    "name": "Transfer",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": true, "name": "owner", "type": "address" },
-      { "indexed": true, "name": "spender", "type": "address" },
-      { "indexed": false, "name": "value", "type": "uint256" }
-    ],
-    "name": "Approval",
-    "type": "event"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "totalSupply",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "account", "type": "address" }],
-    "name": "balanceOf",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "recipient", "type": "address" },
-      { "name": "amount", "type": "uint256" }
-    ],
-    "name": "transfer",
-    "outputs": [{ "name": "", "type": "bool" }],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      { "name": "owner", "type": "address" },
-      { "name": "spender", "type": "address" }
-    ],
-    "name": "allowance",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "spender", "type": "address" },
-      { "name": "amount", "type": "uint256" }
-    ],
-    "name": "approve",
-    "outputs": [{ "name": "", "type": "bool" }],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "sender", "type": "address" },
-      { "name": "recipient", "type": "address" },
-      { "name": "amount", "type": "uint256" }
-    ],
-    "name": "transferFrom",
-    "outputs": [{ "name": "", "type": "bool" }],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "last_completed_migration",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "owner",
-    "outputs": [{ "name": "", "type": "address" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "completed", "type": "uint256" }],
-    "name": "setCompleted",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "new_address", "type": "address" }],
-    "name": "upgrade",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "uint256" }],
-    "name": "validators",
-    "outputs": [{ "name": "", "type": "address" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "howManyValidatorsDecide",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "uint256" }],
-    "name": "allOperations",
-    "outputs": [{ "name": "", "type": "bytes32" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "bytes32" }],
-    "name": "votesMaskByOperation",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "validatorsGeneration",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "bytes32" }],
-    "name": "votesCountByOperation",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "address" }],
-    "name": "validatorsIndices",
-    "outputs": [{ "name": "", "type": "uint8" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "", "type": "bytes32" }],
-    "name": "allOperationsIndicies",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "previousValidators", "type": "address[]" },
-      {
-        "indexed": false,
-        "name": "howManyValidatorsDecide",
-        "type": "uint256"
-      },
-      { "indexed": false, "name": "newvalidators", "type": "address[]" },
-      {
-        "indexed": false,
-        "name": "newHowManyValidatorsDecide",
-        "type": "uint256"
-      }
-    ],
-    "name": "ValidatorShipTransferred",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "howMany", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "proposer", "type": "address" }
-    ],
-    "name": "OperationCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "votes", "type": "uint256" },
-      { "indexed": false, "name": "howMany", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "upvoter", "type": "address" }
-    ],
-    "name": "OperationUpvoted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "howMany", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "performer", "type": "address" }
-    ],
-    "name": "OperationPerformed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "votes", "type": "uint256" },
-      { "indexed": false, "name": "validatorsCount", "type": "uint256" },
-      { "indexed": false, "name": "downvoter", "type": "address" }
-    ],
-    "name": "OperationDownvoted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "operation", "type": "bytes32" },
-      { "indexed": false, "name": "lastCanceller", "type": "address" }
-    ],
-    "name": "OperationCancelled",
-    "type": "event"
-  },
-  {
-    "constant": true,
-    "inputs": [{ "name": "wallet", "type": "address" }],
-    "name": "isExistValidator",
-    "outputs": [{ "name": "", "type": "bool" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "validatorsCount",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "allOperationsCount",
-    "outputs": [{ "name": "", "type": "uint256" }],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "operation", "type": "bytes32" }],
-    "name": "cancelPending",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [],
-    "name": "cancelAllPending",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [{ "name": "newValidators", "type": "address[]" }],
-    "name": "transferValidatorShip",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      { "name": "newValidators", "type": "address[]" },
-      { "name": "newHowManyValidatorsDecide", "type": "uint256" }
-    ],
-    "name": "transferValidatorShipWithHowMany",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "wallet",
+                "type": "address"
+            }
+        ],
+        "name": "isExistValidator",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "validators",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "validatorsCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "validatorsGeneration",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "validatorsIndices",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "votesCountByOperation",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "votesMaskByOperation",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "initialize",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "contract IERC20",
+                "name": "_token",
+                "type": "address"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "guestAddress",
+                "type": "bytes32"
+            }
+        ],
+        "name": "setTransfer",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "revertTransfer",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "spender",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "guestAddress",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "availableAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "approveTransfer",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "confirmTransfer",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "sender",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "recipient",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "availableAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "withdrawTransfer",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "confirmWithdrawTransfer",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "messageID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "confirmCancelTransfer",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "startBridge",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "resumeBridge",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "stopBridge",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "pauseBridge",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "sender",
+                "type": "bytes32"
+            }
+        ],
+        "name": "setPausedStatusForGuestAddress",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "sender",
+                "type": "bytes32"
+            }
+        ],
+        "name": "setResumedStatusForGuestAddress",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "uint256[10]",
+                "name": "parameters",
+                "type": "uint256[10]"
+            }
+        ],
+        "name": "createProposal",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "proposalID",
+                "type": "bytes32"
+            }
+        ],
+        "name": "_approvedNewProposal",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "bridgeStatus",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    }
 ]

@@ -166,7 +166,7 @@ type AccountMessage {
 
 type Account {
   id: ID!
-  messageId: String!
+  messageID: String!
   kind: AccountKind!
   status: AccountStatus!
   timestamp: String!

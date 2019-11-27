@@ -36,7 +36,7 @@ type AccountMessage @entity {
 
 type Account @entity {
   id: ID!
-  messageId: String!
+  messageID: String!
   kind: AccountKind!
   status: AccountStatus!
   timestamp: BigInt!
@@ -65,25 +65,20 @@ type Limit @entity {
   ethBlockNumber: BigInt!
 }
 
-type BridgeLimits {
-  inHostTransactionValue: Int!
-  axHostTransactionValue: Int!
-  ayHostMaxLimit: Int!
-  ayHostMaxLimitForOneAddress: Int!
-  axHostPendingTransactionLimit: Int!
-  inGuestTransactionValue: Int!
-  axGuestTransactionValue: Int!
-  ayGuestMaxLimit: Int!
-  ayGuestMaxLimitForOneAddress: Int!
-  axGuestPendingTransactionLimit: Int!
-}
-
 type Proposal @entity {
   id: ID!
-  address: String!
-  timestamp: BigInt!
-  limits: BridgeLimits!
+  ethAddress: String!
   status: ProposalStatus!
+  minHostTransactionValue: BigInt!
+  maxHostTransactionValue: BigInt!
+  dayHostMaxLimit: BigInt!
+  dayHostMaxLimitForOneAddress: BigInt!
+  maxHostPendingTransactionLimit: BigInt!
+  minGuestTransactionValue: BigInt!
+  maxGuestTransactionValue: BigInt!
+  dayGuestMaxLimit: BigInt!
+  dayGuestMaxLimitForOneAddress: BigInt!
+  maxGuestPendingTransactionLimit: BigInt!
   ethBlockNumber: BigInt!
 }
 
