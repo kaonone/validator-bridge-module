@@ -1,5 +1,7 @@
+import { Address } from "@graphprotocol/graph-ts"
 import { BigInt } from "@graphprotocol/graph-ts"
 import { ByteArray } from '@graphprotocol/graph-ts'
+import { log } from '@graphprotocol/graph-ts'
 import { crypto } from '@graphprotocol/graph-ts'
 import {
   Contract,
@@ -24,8 +26,24 @@ import {
   SetNewLimits,
   ProposalCreated,
   ProposalApproved,
+  AddCandidateValidator,
+  RemoveCandidateValidator,
+  ProposalCandidatesValidatorsCreated,
+  ChangeValidatorsList,
 } from "../generated/Contract/Contract"
-import { Account, AccountMessage, BridgeMessage, LimitMessage, Limit, Message, Proposal } from "../generated/schema"
+import {
+  Account,
+  AccountMessage,
+  BridgeMessage,
+  CandidateValidator,
+  CandidateValidatorMessage,
+  LimitMessage,
+  Limit,
+  Message,
+  LimitProposal,
+  CandidatesValidatorsProposal,
+  ValidatorsListMessage,
+} from "../generated/schema"
 
 export function handleRelayMessage(event: RelayMessage): void {
   let message = new Message(event.params.messageID.toHex());
@@ -118,7 +136,7 @@ export function handleBridgeStartedByVolume(event: BridgeStartedByVolume): void 
 }
 
 export function handleProposalCreated(event: ProposalCreated): void {
-  let proposal = new Proposal(event.params.proposalID.toHex());
+  let proposal = new LimitProposal(event.params.proposalID.toHex());
   proposal.ethAddress = event.params.sender.toHexString();
   proposal.status = "PENDING";
   proposal.minHostTransactionValue = event.params.minHostTransactionValue;
@@ -226,6 +244,72 @@ export function handleSetNewLimits(event: SetNewLimits): void {
   createOrUpdateLimit("MAX_GUEST_PENDING_TRANSACTION_LIMIT", event.params.maxGuestPendingTransactionLimit, id, event.block.number);
 }
 
+export function handleAddCandidateValidator(event: AddCandidateValidator): void {
+  let candidateValidatorMessage = new CandidateValidatorMessage(event.params.messageID.toHex());
+  let ethAddress = event.params.host.toHexString();
+  let subAddress = event.params.guest.toHexString();
+  candidateValidatorMessage.ethAddress = ethAddress;
+  candidateValidatorMessage.subAddress = subAddress;
+  candidateValidatorMessage.action = "ADD";
+  candidateValidatorMessage.ethBlockNumber = event.block.number;
+  candidateValidatorMessage.save();
+
+  createOrUpdateCandidateValidator(ethAddress, subAddress, true, event.block.number);
+}
+
+export function handleRemoveCandidateValidator(event: RemoveCandidateValidator): void {
+  let candidateValidatorMessage = new CandidateValidatorMessage(event.params.messageID.toHex());
+  let ethAddress = event.params.host.toHexString();
+  let subAddress = event.params.guest.toHexString();
+  candidateValidatorMessage.ethAddress = ethAddress;
+  candidateValidatorMessage.subAddress = subAddress;
+  candidateValidatorMessage.action = "REMOVE";
+  candidateValidatorMessage.ethBlockNumber = event.block.number;
+  candidateValidatorMessage.save();
+
+  createOrUpdateCandidateValidator(ethAddress, subAddress, false, event.block.number);
+}
+
+export function handleProposalCandidatesValidatorsCreated(event: ProposalCandidatesValidatorsCreated): void {
+  let id = event.params.messageID.toHex();
+  let candidatesValidatorsProposal = CandidatesValidatorsProposal.load(id);
+  if (candidatesValidatorsProposal == null) {
+    candidatesValidatorsProposal = new CandidatesValidatorsProposal(id);
+  }
+  candidatesValidatorsProposal.status = "PENDING";
+  let hosts = event.params.hosts;
+  var newHosts = new Array<String>(hosts.length);
+  for (let i = 0; i < hosts.length; i++) newHosts[i] = hosts[i].toHexString();
+  candidatesValidatorsProposal.hosts = newHosts;
+  candidatesValidatorsProposal.ethBlockNumber = event.block.number;
+  candidatesValidatorsProposal.save();
+}
+
+export function handleChangeValidatorsList(event: ChangeValidatorsList): void {
+  let id = event.params.messageID.toHex();
+  let validatorsListMessage = new ValidatorsListMessage(id);
+  let validatorList = event.params.newValidators;
+  var newValidatorList = new Array<String>(0);
+  for (let i = 0; i < validatorList.length; i++) {
+    let ethAddress = validatorList[i].toHexString();
+    let candidateValidator = CandidateValidator.load(ethAddress);
+    if (candidateValidator != null && candidateValidator.active) {
+      newValidatorList.push(candidateValidator.subAddress);
+    } else {
+      log.error("can not found active CandidateValidator for {}, messageID: {}", [ethAddress, id]);
+    }
+  }
+  validatorsListMessage.newValidators = newValidatorList;
+  validatorsListMessage.newHowManyValidatorsDecide = event.params.newHowManyValidatorsDecide;
+  validatorsListMessage.ethBlockNumber = event.block.number;
+  if (newValidatorList.length == validatorList.length) {
+    updateStatusOfCandidatesValidatorsProposal(id, "APPROVED")
+    validatorsListMessage.save();
+  } else {
+    log.error("invalid ChangeValidatorsList event, messageID: {}", [id]);
+  }
+}
+
 function changeMessageStatus(id: String, status: String): void {
   let message = Message.load(id);
   if (message != null) {
@@ -235,7 +319,7 @@ function changeMessageStatus(id: String, status: String): void {
 }
 
 function changeProposalStatus(id: String, status: String): void {
-  let proposal = Proposal.load(id);
+  let proposal = LimitProposal.load(id);
   if (proposal != null) {
     proposal.status = status;
     proposal.save();
@@ -262,8 +346,30 @@ function createOrUpdateLimit(id: String, value: BigInt, messageID: String, ethBl
   }
   limit.value = value;
   limit.messageID = messageID;
+  limit.kind = messageID;
   limit.ethBlockNumber = ethBlockNumber;
   limit.save();
+}
+
+function createOrUpdateCandidateValidator(ethAddress: String, subAddress: String, active: boolean, ethBlockNumber: BigInt): void {
+  let candidateValidator = CandidateValidator.load(ethAddress);
+  if (candidateValidator == null) {
+    candidateValidator = new CandidateValidator(ethAddress);
+  }
+  candidateValidator.subAddress = subAddress;
+  candidateValidator.active = active;
+  candidateValidator.ethBlockNumber = ethBlockNumber;
+  candidateValidator.save();
+}
+
+function updateStatusOfCandidatesValidatorsProposal(id: String, status: String): void {
+  let candidatesValidatorsProposal = CandidatesValidatorsProposal.load(id);
+  if (candidatesValidatorsProposal != null) {
+    candidatesValidatorsProposal.status = status;
+    candidatesValidatorsProposal.save();
+  } else {
+    log.error("can not found CandidatesValidatorsProposal, messageID: {}", [id]);
+  }
 }
 
 function generateMessageID(salt: String, ethBlockNumber: BigInt): String {

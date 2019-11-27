@@ -16,14 +16,6 @@ type BridgeMessage @entity {
   ethBlockNumber: BigInt!
 }
 
-type ValidatorMessage @entity {
-  id: ID!
-  action: ValidatorMessageAction!
-  validator: String!
-  status: Status!
-  ethBlockNumber: BigInt!
-}
-
 type AccountMessage @entity {
   id: ID!
   action: AccountMessageAction!
@@ -60,12 +52,13 @@ type LimitMessage @entity {
 
 type Limit @entity {
   id: ID!
+  kind: LimitKind!
   value: BigInt!
   messageID: String!
   ethBlockNumber: BigInt!
 }
 
-type Proposal @entity {
+type LimitProposal @entity {
   id: ID!
   ethAddress: String!
   status: ProposalStatus!
@@ -79,6 +72,35 @@ type Proposal @entity {
   dayGuestMaxLimit: BigInt!
   dayGuestMaxLimitForOneAddress: BigInt!
   maxGuestPendingTransactionLimit: BigInt!
+  ethBlockNumber: BigInt!
+}
+
+type CandidateValidatorMessage @entity {
+  id: ID!
+  ethAddress: String!
+  subAddress: String!
+  action: CandidateValidatorMessageAction!
+  ethBlockNumber: BigInt!
+}
+
+type CandidateValidator @entity {
+  id: ID!
+  subAddress: String!
+  active: Boolean!
+  ethBlockNumber: BigInt!
+}
+
+type CandidatesValidatorsProposal @entity {
+  id: ID!
+  status: ProposalStatus!
+  hosts: [String!]!
+  ethBlockNumber: BigInt!
+}
+
+type ValidatorsListMessage @entity {
+  id: ID!
+  newValidators: [String!]!
+  newHowManyValidatorsDecide: BigInt!
   ethBlockNumber: BigInt!
 }
 
@@ -103,11 +125,6 @@ enum BridgeMessageAction {
   RESUME
 }
 
-enum ValidatorMessageAction {
-  ADD
-  REMOVE
-}
-
 enum AccountMessageAction {
   PAUSE
   RESUME
@@ -127,4 +144,22 @@ enum ProposalStatus {
   PENDING
   APPROVED
   DECLINED
+}
+
+enum CandidateValidatorMessageAction {
+  ADD
+  REMOVE
+}
+
+enum LimitKind {
+  MIN_HOST_TRANSACTION_VALUE
+  MAX_HOST_TRANSACTION_VALUE
+  DAY_HOST_MAX_LIMIT
+  DAY_HOST_MAX_LIMIT_FOR_ONE_ADDRESS
+  MAX_HOST_PENDING_TRANSACTION_LIMIT
+  MIN_GUEST_TRANSACTION_VALUE
+  MAX_GUEST_TRANSACTION_VALUE
+  DAY_GUEST_MAX_LIMIT
+  DAY_GUEST_MAX_LIMIT_FOR_ONE_ADDRESS
+  MAX_GUEST_PENDING_TRANSACTION_LIMIT
 }

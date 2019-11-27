@@ -82,26 +82,6 @@ pub fn resume_bridge(sub_api: &Api, signer_mnemonic_phrase: String) {
     let _tx_hash = sub_api.send_extrinsic(xthex);
 }
 
-pub fn add_validator(sub_api: &Api, signer_mnemonic_phrase: String, validator: H256) {
-    let xthex = build_add_validator(
-        &sub_api,
-        get_sr25519_pair(&signer_mnemonic_phrase),
-        validator,
-    );
-    //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(xthex);
-}
-
-pub fn remove_validator(sub_api: &Api, signer_mnemonic_phrase: String, validator: H256) {
-    let xthex = build_remove_validator(
-        &sub_api,
-        get_sr25519_pair(&signer_mnemonic_phrase),
-        validator,
-    );
-    //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(xthex);
-}
-
 pub fn update_limits(
     sub_api: &Api,
     signer_mnemonic_phrase: String,
@@ -119,6 +99,24 @@ pub fn update_limits(
         day_guest_max_limit,
         day_guest_max_limit_for_one_address,
         max_guest_pending_transaction_limit,
+    );
+    //send and watch extrinsic until finalized
+    let _tx_hash = sub_api.send_extrinsic(xthex);
+}
+
+pub fn update_validator_list(
+    sub_api: &Api,
+    signer_mnemonic_phrase: String,
+    message_id: primitives::H256,
+    new_how_many_validators_decide: u64,
+    new_validators: Vec<sr25519::Public>,
+) {
+    let xthex = build_update_validator_list(
+        &sub_api,
+        get_sr25519_pair(&signer_mnemonic_phrase),
+        message_id,
+        new_how_many_validators_decide,
+        new_validators,
     );
     //send and watch extrinsic until finalized
     let _tx_hash = sub_api.send_extrinsic(xthex);
@@ -279,58 +277,6 @@ fn build_resume_bridge(sub_api: &Api, signer: sr25519::Pair) -> String {
     xthex
 }
 
-fn build_add_validator(sub_api: &Api, signer: sr25519::Pair, validator: H256) -> String {
-    let signer_index = signer_index(sub_api, &signer);
-    let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
-    let function = Call::Bridge(BridgeCall::add_validator(sr25519::Public::from_h256(
-        validator,
-    )));
-    let era = Era::immortal();
-
-    log::debug!("using genesis hash: {:?}", genesis_hash);
-    let raw_payload = (Compact(signer_index), function, era, genesis_hash);
-    let signature = sign_raw_payload(&raw_payload, &signer);
-    let ext = UncheckedExtrinsic::new_signed(
-        signer_index,
-        raw_payload.1,
-        signer.public().into(),
-        signature,
-        era,
-    );
-
-    log::debug!("extrinsic: {:?}", ext);
-
-    let mut xthex: String = ext.encode().to_hex();
-    xthex.insert_str(0, "0x");
-    xthex
-}
-
-fn build_remove_validator(sub_api: &Api, signer: sr25519::Pair, validator: H256) -> String {
-    let signer_index = signer_index(sub_api, &signer);
-    let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
-    let function = Call::Bridge(BridgeCall::remove_validator(sr25519::Public::from_h256(
-        validator,
-    )));
-    let era = Era::immortal();
-
-    log::debug!("using genesis hash: {:?}", genesis_hash);
-    let raw_payload = (Compact(signer_index), function, era, genesis_hash);
-    let signature = sign_raw_payload(&raw_payload, &signer);
-    let ext = UncheckedExtrinsic::new_signed(
-        signer_index,
-        raw_payload.1,
-        signer.public().into(),
-        signature,
-        era,
-    );
-
-    log::debug!("extrinsic: {:?}", ext);
-
-    let mut xthex: String = ext.encode().to_hex();
-    xthex.insert_str(0, "0x");
-    xthex
-}
-
 fn build_update_limits(
     sub_api: &Api,
     signer: sr25519::Pair,
@@ -348,6 +294,40 @@ fn build_update_limits(
         day_guest_max_limit,
         day_guest_max_limit_for_one_address,
         max_guest_pending_transaction_limit,
+    ));
+    let era = Era::immortal();
+
+    log::debug!("using genesis hash: {:?}", genesis_hash);
+    let raw_payload = (Compact(signer_index), function, era, genesis_hash);
+    let signature = sign_raw_payload(&raw_payload, &signer);
+    let ext = UncheckedExtrinsic::new_signed(
+        signer_index,
+        raw_payload.1,
+        signer.public().into(),
+        signature,
+        era,
+    );
+
+    log::debug!("extrinsic: {:?}", ext);
+
+    let mut xthex: String = ext.encode().to_hex();
+    xthex.insert_str(0, "0x");
+    xthex
+}
+
+fn build_update_validator_list(
+    sub_api: &Api,
+    signer: sr25519::Pair,
+    message_id: primitives::H256,
+    new_how_many_validators_decide: u64,
+    new_validators: Vec<sr25519::Public>,
+) -> String {
+    let signer_index = signer_index(sub_api, &signer);
+    let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
+    let function = Call::Bridge(BridgeCall::update_validator_list(
+        message_id,
+        new_how_many_validators_decide,
+        new_validators,
     ));
     let era = Era::immortal();
 

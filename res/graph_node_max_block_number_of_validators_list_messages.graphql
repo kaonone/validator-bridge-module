@@ -1,0 +1,5 @@
+query MaxBlockNumberOfValidatorsListMessages($blockNumber: Int!) {
+  validatorsListMessages(where: {ethBlockNumber_gte: $blockNumber}, orderBy: ethBlockNumber, orderDirection: desc, first: 1) {
+    ethBlockNumber
+  }
+}
