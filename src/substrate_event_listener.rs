@@ -148,20 +148,18 @@ impl EventHandler {
                 );
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::AccountPausedMessage(message_id, sub_address, timestamp) => {
+            bridge::RawEvent::AccountPausedMessage(message_id, sub_address) => {
                 let event = Event::SubAccountPausedMessage(
                     H256::from_slice(message_id.as_bytes()),
                     H256::from_slice(sub_address.as_slice()),
-                    *timestamp,
                     BLOCK_NUMBER,
                 );
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::AccountResumedMessage(message_id, sub_address, timestamp) => {
+            bridge::RawEvent::AccountResumedMessage(message_id, sub_address) => {
                 let event = Event::SubAccountResumedMessage(
                     H256::from_slice(message_id.as_bytes()),
                     H256::from_slice(sub_address.as_slice()),
-                    *timestamp,
                     BLOCK_NUMBER,
                 );
                 self.controller_tx.send(event).expect("can not send event");
