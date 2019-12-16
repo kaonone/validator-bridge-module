@@ -30,31 +30,37 @@ raw-transaction-builder = { path = 'raw-transaction-builder' }
 [dependencies.consensus]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'substrate-consensus-aura'
-rev = 'fc206f3a009b64fc746202e5b4c701bf7e24d1f1'
+rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
+
+[dependencies.consensus_authorities]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'substrate-consensus-authorities'
+rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
 
 [dependencies.system]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'srml-system'
-rev = 'fc206f3a009b64fc746202e5b4c701bf7e24d1f1'
+rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
 
 [dependencies.balances]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'srml-balances'
-rev = 'fc206f3a009b64fc746202e5b4c701bf7e24d1f1'
+rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
 
 [dependencies.primitives]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'substrate-primitives'
-rev = 'fc206f3a009b64fc746202e5b4c701bf7e24d1f1'
+rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
 
 [dependencies.runtime-primitives]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'sr-primitives'
-rev = 'fc206f3a009b64fc746202e5b4c701bf7e24d1f1'
+rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
 
 [dependencies.parity-codec]
 default-features = false

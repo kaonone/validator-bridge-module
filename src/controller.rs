@@ -60,8 +60,8 @@ pub enum Event {
     SubMintedMessage(MessageId, BlockNumber),
     SubCancellationConfirmedMessage(MessageId, BlockNumber),
 
-    SubAccountPausedMessage(MessageId, SubAddress, Timestamp, BlockNumber),
-    SubAccountResumedMessage(MessageId, SubAddress, Timestamp, BlockNumber),
+    SubAccountPausedMessage(MessageId, SubAddress, BlockNumber),
+    SubAccountResumedMessage(MessageId, SubAddress, BlockNumber),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -123,8 +123,8 @@ impl Event {
             Self::SubBurnedMessage(message_id, _, _, _, _) => message_id,
             Self::SubMintedMessage(message_id, _) => message_id,
             Self::SubCancellationConfirmedMessage(message_id, _) => message_id,
-            Self::SubAccountPausedMessage(message_id, _, _, _) => message_id,
-            Self::SubAccountResumedMessage(message_id, _, _, _) => message_id,
+            Self::SubAccountPausedMessage(message_id, _, _) => message_id,
+            Self::SubAccountResumedMessage(message_id, _, _) => message_id,
         }
     }
 
@@ -149,8 +149,8 @@ impl Event {
             Self::SubBurnedMessage(_, _, _, _, block_number) => *block_number,
             Self::SubMintedMessage(_, block_number) => *block_number,
             Self::SubCancellationConfirmedMessage(_, block_number) => *block_number,
-            Self::SubAccountPausedMessage(_, _, _, block_number) => *block_number,
-            Self::SubAccountResumedMessage(_, _, _, block_number) => *block_number,
+            Self::SubAccountPausedMessage(_, _, block_number) => *block_number,
+            Self::SubAccountResumedMessage(_, _, block_number) => *block_number,
         }
     }
 

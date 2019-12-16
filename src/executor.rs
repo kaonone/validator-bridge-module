@@ -240,7 +240,6 @@ impl Executor {
                 Event::SubAccountPausedMessage(
                     message_id,
                     sub_address,
-                    _timestamp,
                     _block_number,
                 ) => handle_sub_account_paused_message(
                     &self.config,
@@ -253,7 +252,6 @@ impl Executor {
                 Event::SubAccountResumedMessage(
                     message_id,
                     sub_address,
-                    _timestamp,
                     _block_number,
                 ) => handle_sub_account_resumed_message(
                     &self.config,
