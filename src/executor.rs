@@ -1,7 +1,6 @@
 use futures::future::{lazy, poll_fn};
 use log;
-use primitives;
-use substrate_api_client::Api;
+use primitives::{self, crypto::Public};
 use tokio::runtime::{Runtime, TaskExecutor};
 use tokio_threadpool::blocking;
 use web3::{
@@ -48,10 +47,6 @@ impl Executor {
     fn start(&self) {
         let runtime = Runtime::new().expect("can not create tokio runtime");
 
-        let mut sub_api = Api::new(self.config.sub_api_url.clone());
-        sub_api.init();
-        let sub_api = Arc::new(sub_api);
-
         let (_eloop, transport) =
             web3::transports::WebSocket::new(&self.config.eth_api_url).unwrap();
         let web3 = web3::Web3::new(transport);
@@ -67,36 +62,16 @@ impl Executor {
             log::info!("received event: {:?}", event);
             match event {
                 Event::EthBridgePausedMessage(message_id, _block_number) => {
-                    handle_eth_bridge_paused_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_bridge_paused_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthBridgeResumedMessage(message_id, _block_number) => {
-                    handle_eth_bridge_resumed_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_bridge_resumed_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthBridgeStartedMessage(message_id, _eth_address, _block_number) => {
-                    handle_eth_bridge_resumed_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_bridge_resumed_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthBridgeStoppedMessage(message_id, _eth_address, _block_number) => {
-                    handle_eth_bridge_paused_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_bridge_paused_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthRelayMessage(
                     message_id,
@@ -123,27 +98,16 @@ impl Executor {
                 ) => handle_eth_approved_relay_message(
                     &self.config,
                     runtime.executor(),
-                    sub_api.clone(),
                     message_id,
                     eth_address,
                     sub_address,
                     amount,
                 ),
                 Event::EthRevertMessage(message_id, _eth_address, _amount, _block_number) => {
-                    handle_eth_revert_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_revert_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthWithdrawMessage(message_id, _block_number) => {
-                    handle_eth_withdraw_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_withdraw_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthHostAccountPausedMessage(_, _, _, _) => (),
                 Event::EthHostAccountResumedMessage(_, _, _, _) => (),
@@ -165,7 +129,6 @@ impl Executor {
                 ) => handle_eth_set_new_limits(
                     &self.config,
                     runtime.executor(),
-                    sub_api.clone(),
                     message_id,
                     min_guest_transaction_value,
                     max_guest_transaction_value,
@@ -181,17 +144,13 @@ impl Executor {
                 ) => handle_eth_validators_list_message(
                     &self.config,
                     runtime.executor(),
-                    sub_api.clone(),
                     message_id,
                     new_validators,
                     new_how_many_validators_decide,
                 ),
-                Event::SubRelayMessage(message_id, _block_number) => handle_sub_relay_message(
-                    &self.config,
-                    runtime.executor(),
-                    sub_api.clone(),
-                    message_id,
-                ),
+                Event::SubRelayMessage(message_id, _block_number) => {
+                    handle_sub_relay_message(&self.config, runtime.executor(), message_id)
+                }
                 Event::SubApprovedRelayMessage(
                     message_id,
                     sub_address,
@@ -237,30 +196,26 @@ impl Executor {
                         message_id,
                     )
                 }
-                Event::SubAccountPausedMessage(
-                    message_id,
-                    sub_address,
-                    _block_number,
-                ) => handle_sub_account_paused_message(
-                    &self.config,
-                    runtime.executor(),
-                    web3.clone(),
-                    abi.clone(),
-                    message_id,
-                    sub_address,
-                ),
-                Event::SubAccountResumedMessage(
-                    message_id,
-                    sub_address,
-                    _block_number,
-                ) => handle_sub_account_resumed_message(
-                    &self.config,
-                    runtime.executor(),
-                    web3.clone(),
-                    abi.clone(),
-                    message_id,
-                    sub_address,
-                ),
+                Event::SubAccountPausedMessage(message_id, sub_address, _block_number) => {
+                    handle_sub_account_paused_message(
+                        &self.config,
+                        runtime.executor(),
+                        web3.clone(),
+                        abi.clone(),
+                        message_id,
+                        sub_address,
+                    )
+                }
+                Event::SubAccountResumedMessage(message_id, sub_address, _block_number) => {
+                    handle_sub_account_resumed_message(
+                        &self.config,
+                        runtime.executor(),
+                        web3.clone(),
+                        abi.clone(),
+                        message_id,
+                        sub_address,
+                    )
+                }
             }
         })
     }
@@ -269,17 +224,17 @@ impl Executor {
 fn handle_eth_bridge_paused_message(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::pause_bridge(
-                    &sub_api.clone(),
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                 );
                 log::info!(
@@ -295,17 +250,17 @@ fn handle_eth_bridge_paused_message(
 fn handle_eth_bridge_resumed_message(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::resume_bridge(
-                    &sub_api.clone(),
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                 );
                 log::info!(
@@ -364,7 +319,6 @@ fn handle_eth_relay_message<T>(
 fn handle_eth_approved_relay_message(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
     eth_address: H160,
     sub_address: H256,
@@ -372,15 +326,16 @@ fn handle_eth_approved_relay_message(
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let eth_address = primitives::H160::from_slice(&eth_address.to_fixed_bytes());
-    let sub_address = primitives::sr25519::Public::from_slice(&sub_address.to_fixed_bytes());
+    let sub_address = primitives::crypto::AccountId32::from(sub_address.to_fixed_bytes());
     let amount = amount.low_u128();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::mint(
-                    &sub_api.clone(),
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                     eth_address,
@@ -400,20 +355,16 @@ fn handle_eth_approved_relay_message(
     }));
 }
 
-fn handle_eth_revert_message(
-    config: &Config,
-    task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
-    message_id: H256,
-) {
+fn handle_eth_revert_message(config: &Config, task_executor: TaskExecutor, message_id: H256) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::cancel_transfer(
-                    &sub_api.clone(),
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                 );
@@ -424,20 +375,16 @@ fn handle_eth_revert_message(
     }));
 }
 
-fn handle_eth_withdraw_message(
-    config: &Config,
-    task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
-    message_id: H256,
-) {
+fn handle_eth_withdraw_message(config: &Config, task_executor: TaskExecutor, message_id: H256) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::confirm_transfer(
-                    &sub_api,
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                 );
@@ -451,7 +398,6 @@ fn handle_eth_withdraw_message(
 fn handle_eth_set_new_limits(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
     min_guest_transaction_value: U256,
     max_guest_transaction_value: U256,
@@ -460,12 +406,13 @@ fn handle_eth_set_new_limits(
     max_guest_pending_transaction_limit: U256,
 ) {
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::update_limits(
-                    &sub_api,
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     min_guest_transaction_value.as_u128(),
                     max_guest_transaction_value.as_u128(),
@@ -491,7 +438,6 @@ fn handle_eth_set_new_limits(
 fn handle_eth_validators_list_message(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
     new_validators: Vec<H256>,
     new_how_many_validators_decide: U256,
@@ -502,12 +448,13 @@ fn handle_eth_validators_list_message(
         .map(|a| primitives::sr25519::Public::from_slice(&a.to_fixed_bytes()))
         .collect::<Vec<_>>();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::update_validator_list(
-                    &sub_api,
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                     new_how_many_validators_decide.as_u64(),
@@ -525,20 +472,16 @@ fn handle_eth_validators_list_message(
     }));
 }
 
-fn handle_sub_relay_message(
-    config: &Config,
-    task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
-    message_id: H256,
-) {
+fn handle_sub_relay_message(config: &Config, task_executor: TaskExecutor, message_id: H256) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::approve_transfer(
-                    &sub_api,
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                 );
