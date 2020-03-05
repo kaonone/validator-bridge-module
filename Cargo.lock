@@ -4229,7 +4229,7 @@ dependencies = [
 
 [[package]]
 name = "validator"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "akropolisos-runtime 0.4.0 (git+https://github.com/akropolisio/akropolisos-substrate-node.git?branch=pricefetch)",
  "dotenv 0.14.1 (registry+https://github.com/rust-lang/crates.io-index)",
