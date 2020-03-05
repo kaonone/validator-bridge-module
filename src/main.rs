@@ -25,8 +25,7 @@ fn main() {
     let executor_thread = executor::spawn(config.clone(), executor_rx);
     let graph_node_event_listener_thread =
         graph_node_event_listener::spawn(config.clone(), controller_tx.clone());
-    let substrate_event_listener_thread =
-        substrate_event_listener::spawn(config.clone(), controller_tx.clone());
+    let substrate_event_listener_thread = substrate_event_listener::spawn(config, controller_tx);
 
     let _ = controller_thread.join();
     let _ = executor_thread.join();

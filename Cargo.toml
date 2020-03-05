@@ -1,6 +1,6 @@
 [package]
 name = "validator"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Akropolis Decentralised Ltd., <team@akropolis.io>"]
 edition = "2018"
 
@@ -21,51 +21,55 @@ reqwest = "0.9.22"
 serde = "1.0.101"
 time = "0.1.42"
 
-node-runtime = { path = '../../runtime/', package = 'erc20-substrate-bridge-runtime' }
+node-runtime = { git = 'https://github.com/akropolisio/akropolisos-substrate-node.git', branch = 'pricefetch', package = 'akropolisos-runtime' }
 
-substrate-bip39 = { path = 'vendor/substrate-bip39' }
-substrate-api-client = { path = 'vendor/substrate-api-client' }
 raw-transaction-builder = { path = 'raw-transaction-builder' }
+
+substrate-bip39 = "0.3.1"
+substrate-api-client = { git = 'https://github.com/scs/substrate-api-client.git', rev = '822b0fd7fe4df5dabdb3c60c75d12d36cccba2f2'}
 
 [dependencies.consensus]
 git = 'https://github.com/paritytech/substrate.git'
-package = 'substrate-consensus-aura'
-rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
-
-[dependencies.consensus_authorities]
-default-features = false
-git = 'https://github.com/paritytech/substrate.git'
-package = 'substrate-consensus-authorities'
-rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
+package = 'pallet-aura'
+rev = '3e651110aa06aa835790df63410a29676243fc54'
 
 [dependencies.system]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
-package = 'srml-system'
-rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
+package = 'frame-system'
+rev = '3e651110aa06aa835790df63410a29676243fc54'
 
 [dependencies.balances]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
-package = 'srml-balances'
-rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
+package = 'pallet-balances'
+rev = '3e651110aa06aa835790df63410a29676243fc54'
 
 [dependencies.primitives]
-default_features = false
+features = ["full_crypto"]
 git = 'https://github.com/paritytech/substrate.git'
-package = 'substrate-primitives'
-rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
+package = 'sp-core'
+rev = '00a400f82539e2f78e8ddbcd98aea512c87c5f3c' # must match with 'rev' of 'sp-core' in substrate-api-client!
+
+[dependencies.primitives-node]
+features = ["full_crypto"]
+git = 'https://github.com/paritytech/substrate.git'
+package = 'sp-core'
+rev = '3e651110aa06aa835790df63410a29676243fc54'
 
 [dependencies.runtime-primitives]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
-package = 'sr-primitives'
-rev = 'cc1d67e973fd02c0c997b164ba516cf041bf21f1'
+package = 'sp-runtime'
+rev = '3e651110aa06aa835790df63410a29676243fc54'
 
 [dependencies.parity-codec]
 default-features = false
 features = ['derive']
 version = '3.5'
 
-[patch.'https://github.com/paritytech/substrate-bip39']
-substrate-bip39 = { path="vendor/substrate-bip39" }
+[dependencies.codec]
+package = "parity-scale-codec"
+features = ["derive"]
+version = "1.0.0"
+default-features = false
