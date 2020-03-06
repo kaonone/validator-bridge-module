@@ -15,7 +15,10 @@ pub struct Config {
     pub eth_api_url: String,
     pub eth_validator_address: Address,
     pub eth_validator_private_key: String,
-    pub eth_contract_address: Address,
+    pub dai_contract_address: Address,
+    pub cdai_contract_address: Address,
+    pub usdt_contract_address: Address,
+    pub usdc_contract_address: Address,
     pub eth_gas_price: u64,
     pub eth_gas: u64,
     pub sub_api_url: String,
@@ -29,7 +32,10 @@ impl Config {
             eth_api_url: parse_eth_api_url()?,
             eth_validator_address: parse_eth_validator_address()?,
             eth_validator_private_key: parse_eth_validator_private_key()?,
-            eth_contract_address: parse_eth_contract_address()?,
+            dai_contract_address: parse_dai_contract_address()?,
+            cdai_contract_address: parse_cdai_contract_address()?,
+            usdt_contract_address: parse_usdt_contract_address()?,
+            usdc_contract_address: parse_usdc_contract_address()?,
             eth_gas_price: parse_eth_gas_price()?,
             eth_gas: parse_eth_gas()?,
             sub_api_url: parse_sub_api_url()?,
@@ -63,9 +69,30 @@ fn parse_eth_validator_private_key() -> Result<String, &'static str> {
     Ok(private_key)
 }
 
-fn parse_eth_contract_address() -> Result<Address, &'static str> {
+fn parse_dai_contract_address() -> Result<Address, &'static str> {
     let address =
-        env::var("ETH_CONTRACT_ADDRESS").map_err(|_| "can not read ETH_CONTRACT_ADDRESS")?;
+        env::var("DAI_CONTRACT_ADDRESS").map_err(|_| "can not read DAI_CONTRACT_ADDRESS")?;
+    address[2..]
+        .parse()
+        .map_err(|_| "can not parse contract address")
+}
+fn parse_cdai_contract_address() -> Result<Address, &'static str> {
+    let address =
+        env::var("cDAI_CONTRACT_ADDRESS").map_err(|_| "can not read cDAI_CONTRACT_ADDRESS")?;
+    address[2..]
+        .parse()
+        .map_err(|_| "can not parse contract address")
+}
+fn parse_usdt_contract_address() -> Result<Address, &'static str> {
+    let address =
+        env::var("USDT_CONTRACT_ADDRESS").map_err(|_| "can not read USDT_CONTRACT_ADDRESS")?;
+    address[2..]
+        .parse()
+        .map_err(|_| "can not parse contract address")
+}
+fn parse_usdc_contract_address() -> Result<Address, &'static str> {
+    let address =
+        env::var("USDC_CONTRACT_ADDRESS").map_err(|_| "can not read USDC_CONTRACT_ADDRESS")?;
     address[2..]
         .parse()
         .map_err(|_| "can not parse contract address")
