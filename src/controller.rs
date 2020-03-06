@@ -104,25 +104,28 @@ pub fn spawn(
 impl Event {
     pub fn message_id(&self) -> &H256 {
         match self {
-            Self::EthBridgePausedMessage(message_id, _) => message_id,
-            Self::EthBridgeResumedMessage(message_id, _) => message_id,
-            Self::EthBridgeStartedMessage(message_id, _, _) => message_id,
-            Self::EthBridgeStoppedMessage(message_id, _, _) => message_id,
+            // Transfers
             Self::EthRelayMessage(message_id, _, _, _, _) => message_id,
             Self::EthApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::EthRevertMessage(message_id, _, _, _) => message_id,
             Self::EthWithdrawMessage(message_id, _) => message_id,
-            Self::EthHostAccountPausedMessage(message_id, _, _, _) => message_id,
-            Self::EthHostAccountResumedMessage(message_id, _, _, _) => message_id,
-            Self::EthGuestAccountPausedMessage(message_id, _, _, _) => message_id,
-            Self::EthGuestAccountResumedMessage(message_id, _, _, _) => message_id,
-            Self::EthSetNewLimits(message_id, _, _, _, _, _, _, _, _, _, _, _) => message_id,
-            Self::EthValidatorsListMessage(message_id, _, _, _) => message_id,
             Self::SubRelayMessage(message_id, _) => message_id,
             Self::SubApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::SubBurnedMessage(message_id, _, _, _, _) => message_id,
             Self::SubMintedMessage(message_id, _) => message_id,
             Self::SubCancellationConfirmedMessage(message_id, _) => message_id,
+            // Bridge management
+            Self::EthBridgePausedMessage(message_id, _) => message_id,
+            Self::EthBridgeResumedMessage(message_id, _) => message_id,
+            Self::EthBridgeStartedMessage(message_id, _, _) => message_id,
+            Self::EthBridgeStoppedMessage(message_id, _, _) => message_id,
+            Self::EthSetNewLimits(message_id, _, _, _, _, _, _, _, _, _, _, _) => message_id,
+            Self::EthValidatorsListMessage(message_id, _, _, _) => message_id,
+            // Account management
+            Self::EthHostAccountPausedMessage(message_id, _, _, _) => message_id,
+            Self::EthHostAccountResumedMessage(message_id, _, _, _) => message_id,
+            Self::EthGuestAccountPausedMessage(message_id, _, _, _) => message_id,
+            Self::EthGuestAccountResumedMessage(message_id, _, _, _) => message_id,
             Self::SubAccountPausedMessage(message_id, _, _) => message_id,
             Self::SubAccountResumedMessage(message_id, _, _) => message_id,
         }
@@ -130,25 +133,28 @@ impl Event {
 
     pub fn block_number(&self) -> u128 {
         match self {
-            Self::EthBridgePausedMessage(_, block_number) => *block_number,
-            Self::EthBridgeResumedMessage(_, block_number) => *block_number,
-            Self::EthBridgeStartedMessage(_, _, block_number) => *block_number,
-            Self::EthBridgeStoppedMessage(_, _, block_number) => *block_number,
+            // Transfers
             Self::EthRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::EthApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
-            Self::EthRevertMessage(_, _, _, block_number) => *block_number,
             Self::EthWithdrawMessage(_, block_number) => *block_number,
-            Self::EthHostAccountPausedMessage(_, _, _, block_number) => *block_number,
-            Self::EthHostAccountResumedMessage(_, _, _, block_number) => *block_number,
-            Self::EthGuestAccountPausedMessage(_, _, _, block_number) => *block_number,
-            Self::EthGuestAccountResumedMessage(_, _, _, block_number) => *block_number,
-            Self::EthSetNewLimits(_, _, _, _, _, _, _, _, _, _, _, block_number) => *block_number,
-            Self::EthValidatorsListMessage(_, _, _, block_number) => *block_number,
+            Self::EthRevertMessage(_, _, _, block_number) => *block_number,
             Self::SubRelayMessage(_, block_number) => *block_number,
             Self::SubApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::SubBurnedMessage(_, _, _, _, block_number) => *block_number,
             Self::SubMintedMessage(_, block_number) => *block_number,
             Self::SubCancellationConfirmedMessage(_, block_number) => *block_number,
+            // Bridge management
+            Self::EthSetNewLimits(_, _, _, _, _, _, _, _, _, _, _, block_number) => *block_number,
+            Self::EthBridgePausedMessage(_, block_number) => *block_number,
+            Self::EthBridgeResumedMessage(_, block_number) => *block_number,
+            Self::EthBridgeStartedMessage(_, _, block_number) => *block_number,
+            Self::EthBridgeStoppedMessage(_, _, block_number) => *block_number,
+            Self::EthValidatorsListMessage(_, _, _, block_number) => *block_number,
+            // Account management
+            Self::EthHostAccountPausedMessage(_, _, _, block_number) => *block_number,
+            Self::EthHostAccountResumedMessage(_, _, _, block_number) => *block_number,
+            Self::EthGuestAccountPausedMessage(_, _, _, block_number) => *block_number,
+            Self::EthGuestAccountResumedMessage(_, _, _, block_number) => *block_number,
             Self::SubAccountPausedMessage(_, _, block_number) => *block_number,
             Self::SubAccountResumedMessage(_, _, block_number) => *block_number,
         }
