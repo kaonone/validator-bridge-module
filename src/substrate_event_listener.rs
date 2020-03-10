@@ -174,7 +174,7 @@ impl EventHandler {
                     H256::from_slice(message_id.as_bytes()),
                     H256::from(sub_address),
                     u64::from(*timestamp),
-                    u32::from(*token_id),
+                    U256::from(*token_id),
                     BLOCK_NUMBER,
                 );
                 self.controller_tx.send(event).expect("can not send event");
@@ -185,7 +185,7 @@ impl EventHandler {
                     H256::from_slice(message_id.as_bytes()),
                     H256::from(sub_address),
                     u64::from(*timestamp),
-                    u32::from(*token_id),
+                    U256::from(*token_id),
                     BLOCK_NUMBER,
                 );
                 self.controller_tx.send(event).expect("can not send event");

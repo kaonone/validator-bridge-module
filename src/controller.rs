@@ -12,7 +12,6 @@ type EthAddress = H160;
 type SubAddress = H256;
 type Amount = U256;
 type TokenId = U256;
-type TokenId_sub = u32;
 type BlockNumber = u128;
 type Timestamp = u64;
 
@@ -90,8 +89,8 @@ pub enum Event {
     SubMintedMessage(MessageId, TokenId, BlockNumber),
     SubCancellationConfirmedMessage(MessageId, TokenId, BlockNumber),
 
-    SubAccountPausedMessage(MessageId, SubAddress, Timestamp, TokenId_sub, BlockNumber),
-    SubAccountResumedMessage(MessageId, SubAddress, Timestamp, TokenId_sub, BlockNumber),
+    SubAccountPausedMessage(MessageId, SubAddress, Timestamp, TokenId, BlockNumber),
+    SubAccountResumedMessage(MessageId, SubAddress, Timestamp, TokenId, BlockNumber),
 }
 
 #[derive(Debug, PartialEq, Eq)]
