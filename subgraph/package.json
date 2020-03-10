@@ -10,7 +10,7 @@
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 polkadai-bridge/subgraph"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.15.1",
-    "@graphprotocol/graph-ts": "0.15.0"
+    "@graphprotocol/graph-cli": "0.17.1",
+    "@graphprotocol/graph-ts": "0.17.0"
   }
 }
