@@ -10,6 +10,7 @@ pub fn mint(
     message_id: primitives::H256,
     from: primitives::H160,
     to: AccountId32,
+    token_id: u32,
     amount: u128,
 ) {
     let sub_api = Api::new(sub_api_url).set_signer(get_sr25519_pair(&signer_mnemonic_phrase));
@@ -20,6 +21,7 @@ pub fn mint(
         message_id,
         from,
         to,
+        token_id,
         amount
     );
     log::debug!("extrinsic: {:?}", ext);

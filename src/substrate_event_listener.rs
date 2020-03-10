@@ -117,7 +117,7 @@ impl EventHandler {
 
     fn handle_bridge_event(
         &self,
-        event: BridgeEvent<primitives_node::crypto::AccountId32, primitives::H256>,
+        event: BridgeEvent<primitives_node::crypto::AccountId32, primitives::H256, u32>,
     ) {
         const BLOCK_NUMBER: u128 = 0;
 
@@ -128,54 +128,64 @@ impl EventHandler {
                     Event::SubRelayMessage(H256::from_slice(message_id.as_bytes()), BLOCK_NUMBER);
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::ApprovedRelayMessage(message_id, _token_id, from, to, amount) => {
+            bridge::RawEvent::ApprovedRelayMessage(message_id, token_id, from, to, amount) => {
                 let from: [u8; 32] = from.to_owned().into();
                 let event = Event::SubApprovedRelayMessage(
                     H256::from_slice(message_id.as_bytes()),
                     H256::from(from),
                     H160::from_slice(to.as_bytes()),
+                    U256::from(*token_id),
                     U256::from(*amount),
                     BLOCK_NUMBER,
                 );
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::BurnedMessage(message_id, _token_id, from, to, amount) => {
+            bridge::RawEvent::BurnedMessage(message_id, token_id, from, to, amount) => {
                 let from: [u8; 32] = from.to_owned().into();
                 let event = Event::SubBurnedMessage(
                     H256::from_slice(message_id.as_bytes()),
                     H256::from(from),
                     H160::from_slice(to.as_bytes()),
                     U256::from(*amount),
+                    U256::from(*token_id),
                     BLOCK_NUMBER,
                 );
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::MintedMessage(message_id) => {
-                let event =
-                    Event::SubMintedMessage(H256::from_slice(message_id.as_bytes()), BLOCK_NUMBER);
+            bridge::RawEvent::MintedMessage(message_id, token_id) => {
+                let event = Event::SubMintedMessage(
+                    H256::from_slice(message_id.as_bytes()),
+                    U256::from(*token_id),
+                    BLOCK_NUMBER,
+                );
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::CancellationConfirmedMessage(message_id) => {
+            bridge::RawEvent::CancellationConfirmedMessage(message_id, token_id) => {
                 let event = Event::SubCancellationConfirmedMessage(
                     H256::from_slice(message_id.as_bytes()),
+                    U256::from(*token_id),
                     BLOCK_NUMBER,
                 );
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::AccountPausedMessage(message_id, sub_address) => {
+            bridge::RawEvent::AccountPausedMessage(message_id, sub_address, timestamp, token_id) => {
                 let sub_address: [u8; 32] = sub_address.to_owned().into();
                 let event = Event::SubAccountPausedMessage(
                     H256::from_slice(message_id.as_bytes()),
                     H256::from(sub_address),
+                    u64::from(*timestamp),
+                    u32::from(*token_id),
                     BLOCK_NUMBER,
                 );
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::AccountResumedMessage(message_id, sub_address) => {
+            bridge::RawEvent::AccountResumedMessage(message_id, sub_address, timestamp, token_id) => {
                 let sub_address: [u8; 32] = sub_address.to_owned().into();
                 let event = Event::SubAccountResumedMessage(
                     H256::from_slice(message_id.as_bytes()),
                     H256::from(sub_address),
+                    u64::from(*timestamp),
+                    u32::from(*token_id),
                     BLOCK_NUMBER,
                 );
                 self.controller_tx.send(event).expect("can not send event");
