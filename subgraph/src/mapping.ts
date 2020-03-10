@@ -1,8 +1,8 @@
-import { Address } from "@graphprotocol/graph-ts"
-import { BigInt } from "@graphprotocol/graph-ts"
-import { ByteArray } from '@graphprotocol/graph-ts'
-import { log } from '@graphprotocol/graph-ts'
-import { crypto } from '@graphprotocol/graph-ts'
+import { Address } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
+import { ByteArray } from "@graphprotocol/graph-ts";
+import { log } from "@graphprotocol/graph-ts";
+import { crypto } from "@graphprotocol/graph-ts";
 import {
   Contract,
   BridgeStopped,
@@ -29,8 +29,8 @@ import {
   AddCandidateValidator,
   RemoveCandidateValidator,
   ProposalCandidatesValidatorsCreated,
-  ChangeValidatorsList,
-} from "../generated/Contract/Contract"
+  ChangeValidatorsList
+} from "../generated/Contract/Contract";
 import {
   Account,
   AccountMessage,
@@ -42,14 +42,15 @@ import {
   Message,
   LimitProposal,
   CandidatesValidatorsProposal,
-  ValidatorsListMessage,
-} from "../generated/schema"
+  ValidatorsListMessage
+} from "../generated/schema";
 
 export function handleRelayMessage(event: RelayMessage): void {
   let message = new Message(event.params.messageID.toHex());
   message.ethAddress = event.params.sender.toHexString();
   message.subAddress = event.params.recipient.toHexString();
   message.amount = event.params.amount;
+  message.token = event.params.token;
   message.status = "PENDING";
   message.direction = "ETH2SUB";
   message.ethBlockNumber = event.block.number;
@@ -65,6 +66,7 @@ export function handleWithdrawMessage(event: WithdrawMessage): void {
   message.ethAddress = event.params.recepient.toHexString();
   message.subAddress = event.params.sender.toHexString();
   message.amount = event.params.amount;
+  message.token = event.params.token;
   message.status = "WITHDRAW";
   message.direction = "SUB2ETH";
   message.ethBlockNumber = event.block.number;
@@ -79,7 +81,9 @@ export function handleConfirmMessage(event: ConfirmMessage): void {
   changeMessageStatus(event.params.messageID.toHex(), "CONFIRMED");
 }
 
-export function handleConfirmWithdrawMessage(event: ConfirmWithdrawMessage): void {
+export function handleConfirmWithdrawMessage(
+  event: ConfirmWithdrawMessage
+): void {
   changeMessageStatus(event.params.messageID.toHex(), "CONFIRMED_WITHDRAW");
 }
 
@@ -127,7 +131,9 @@ export function handleBridgePausedByVolume(event: BridgePausedByVolume): void {
   bridge_message.save();
 }
 
-export function handleBridgeStartedByVolume(event: BridgeStartedByVolume): void {
+export function handleBridgeStartedByVolume(
+  event: BridgeStartedByVolume
+): void {
   let bridge_message = new BridgeMessage(event.params.messageID.toHex());
   bridge_message.action = "RESUME";
   bridge_message.status = "PENDING";
@@ -142,13 +148,17 @@ export function handleProposalCreated(event: ProposalCreated): void {
   proposal.minHostTransactionValue = event.params.minHostTransactionValue;
   proposal.maxHostTransactionValue = event.params.maxHostTransactionValue;
   proposal.dayHostMaxLimit = event.params.dayHostMaxLimit;
-  proposal.dayHostMaxLimitForOneAddress = event.params.dayHostMaxLimitForOneAddress;
-  proposal.maxHostPendingTransactionLimit = event.params.maxHostPendingTransactionLimit;
+  proposal.dayHostMaxLimitForOneAddress =
+    event.params.dayHostMaxLimitForOneAddress;
+  proposal.maxHostPendingTransactionLimit =
+    event.params.maxHostPendingTransactionLimit;
   proposal.minGuestTransactionValue = event.params.minGuestTransactionValue;
   proposal.maxGuestTransactionValue = event.params.maxGuestTransactionValue;
   proposal.dayGuestMaxLimit = event.params.dayGuestMaxLimit;
-  proposal.dayGuestMaxLimitForOneAddress = event.params.dayGuestMaxLimitForOneAddress;
-  proposal.maxGuestPendingTransactionLimit = event.params.maxGuestPendingTransactionLimit;
+  proposal.dayGuestMaxLimitForOneAddress =
+    event.params.dayGuestMaxLimitForOneAddress;
+  proposal.maxGuestPendingTransactionLimit =
+    event.params.maxGuestPendingTransactionLimit;
   proposal.ethBlockNumber = event.block.number;
   proposal.save();
 }
@@ -157,7 +167,9 @@ export function handleProposalApproved(event: ProposalApproved): void {
   changeProposalStatus(event.params.proposalID.toHex(), "APPROVED");
 }
 
-export function handleHostAccountPausedMessage(event: HostAccountPausedMessage): void {
+export function handleHostAccountPausedMessage(
+  event: HostAccountPausedMessage
+): void {
   let id = event.params.messageID.toHex();
   let account_message = new AccountMessage(id);
   let ethAddress = event.params.sender.toHexString();
@@ -168,10 +180,19 @@ export function handleHostAccountPausedMessage(event: HostAccountPausedMessage):
   account_message.ethBlockNumber = event.block.number;
   account_message.save();
 
-  createOrUpdateAccount(ethAddress, id, "ETH", "BLOCKED", event.params.timestamp, event.block.number);
+  createOrUpdateAccount(
+    ethAddress,
+    id,
+    "ETH",
+    "BLOCKED",
+    event.params.timestamp,
+    event.block.number
+  );
 }
 
-export function handleHostAccountResumedMessage(event: HostAccountResumedMessage): void {
+export function handleHostAccountResumedMessage(
+  event: HostAccountResumedMessage
+): void {
   let id = event.params.messageID.toHex();
   let account_message = new AccountMessage(id);
   let ethAddress = event.params.sender.toHexString();
@@ -182,10 +203,19 @@ export function handleHostAccountResumedMessage(event: HostAccountResumedMessage
   account_message.ethBlockNumber = event.block.number;
   account_message.save();
 
-  createOrUpdateAccount(ethAddress, id, "ETH", "ACTIVE", event.params.timestamp, event.block.number);
+  createOrUpdateAccount(
+    ethAddress,
+    id,
+    "ETH",
+    "ACTIVE",
+    event.params.timestamp,
+    event.block.number
+  );
 }
 
-export function handleGuestAccountPausedMessage(event: GuestAccountPausedMessage): void {
+export function handleGuestAccountPausedMessage(
+  event: GuestAccountPausedMessage
+): void {
   let id = event.params.messageID.toHex();
   let account_message = new AccountMessage(id);
   let subAddress = event.params.recipient.toHexString();
@@ -196,10 +226,19 @@ export function handleGuestAccountPausedMessage(event: GuestAccountPausedMessage
   account_message.ethBlockNumber = event.block.number;
   account_message.save();
 
-  createOrUpdateAccount(subAddress, id, "SUB", "BLOCKED", event.params.timestamp, event.block.number);
+  createOrUpdateAccount(
+    subAddress,
+    id,
+    "SUB",
+    "BLOCKED",
+    event.params.timestamp,
+    event.block.number
+  );
 }
 
-export function handleGuestAccountResumedMessage(event: GuestAccountResumedMessage): void {
+export function handleGuestAccountResumedMessage(
+  event: GuestAccountResumedMessage
+): void {
   let id = event.params.messageID.toHex();
   let account_message = new AccountMessage(id);
   let subAddress = event.params.recipient.toHexString();
@@ -210,7 +249,14 @@ export function handleGuestAccountResumedMessage(event: GuestAccountResumedMessa
   account_message.ethBlockNumber = event.block.number;
   account_message.save();
 
-  createOrUpdateAccount(subAddress, id, "SUB", "ACTIVE", event.params.timestamp, event.block.number);
+  createOrUpdateAccount(
+    subAddress,
+    id,
+    "SUB",
+    "ACTIVE",
+    event.params.timestamp,
+    event.block.number
+  );
 }
 
 export function handleSetNewLimits(event: SetNewLimits): void {
@@ -222,30 +268,88 @@ export function handleSetNewLimits(event: SetNewLimits): void {
   limitMessage.minHostTransactionValue = event.params.minHostTransactionValue;
   limitMessage.maxHostTransactionValue = event.params.maxHostTransactionValue;
   limitMessage.dayHostMaxLimit = event.params.dayHostMaxLimit;
-  limitMessage.dayHostMaxLimitForOneAddress = event.params.dayHostMaxLimitForOneAddress;
-  limitMessage.maxHostPendingTransactionLimit = event.params.maxHostPendingTransactionLimit;
+  limitMessage.dayHostMaxLimitForOneAddress =
+    event.params.dayHostMaxLimitForOneAddress;
+  limitMessage.maxHostPendingTransactionLimit =
+    event.params.maxHostPendingTransactionLimit;
   limitMessage.minGuestTransactionValue = event.params.minGuestTransactionValue;
   limitMessage.maxGuestTransactionValue = event.params.maxGuestTransactionValue;
   limitMessage.dayGuestMaxLimit = event.params.dayGuestMaxLimit;
-  limitMessage.dayGuestMaxLimitForOneAddress = event.params.dayGuestMaxLimitForOneAddress;
-  limitMessage.maxGuestPendingTransactionLimit = event.params.maxGuestPendingTransactionLimit;
+  limitMessage.dayGuestMaxLimitForOneAddress =
+    event.params.dayGuestMaxLimitForOneAddress;
+  limitMessage.maxGuestPendingTransactionLimit =
+    event.params.maxGuestPendingTransactionLimit;
   limitMessage.ethBlockNumber = event.block.number;
   limitMessage.save();
 
-  createOrUpdateLimit("MIN_HOST_TRANSACTION_VALUE", event.params.minHostTransactionValue, id, event.block.number);
-  createOrUpdateLimit("MAX_HOST_TRANSACTION_VALUE", event.params.maxHostTransactionValue, id, event.block.number);
-  createOrUpdateLimit("DAY_HOST_MAX_LIMIT", event.params.dayHostMaxLimit, id, event.block.number);
-  createOrUpdateLimit("DAY_HOST_MAX_LIMIT_FOR_ONE_ADDRESS", event.params.dayHostMaxLimitForOneAddress, id, event.block.number);
-  createOrUpdateLimit("MAX_HOST_PENDING_TRANSACTION_LIMIT", event.params.maxHostPendingTransactionLimit, id, event.block.number);
-  createOrUpdateLimit("MIN_GUEST_TRANSACTION_VALUE", event.params.minGuestTransactionValue, id, event.block.number);
-  createOrUpdateLimit("MAX_GUEST_TRANSACTION_VALUE", event.params.maxGuestTransactionValue, id, event.block.number);
-  createOrUpdateLimit("DAY_GUEST_MAX_LIMIT", event.params.dayGuestMaxLimit, id, event.block.number);
-  createOrUpdateLimit("DAY_GUEST_MAX_LIMIT_FOR_ONE_ADDRESS", event.params.dayGuestMaxLimitForOneAddress, id, event.block.number);
-  createOrUpdateLimit("MAX_GUEST_PENDING_TRANSACTION_LIMIT", event.params.maxGuestPendingTransactionLimit, id, event.block.number);
+  createOrUpdateLimit(
+    "MIN_HOST_TRANSACTION_VALUE",
+    event.params.minHostTransactionValue,
+    id,
+    event.block.number
+  );
+  createOrUpdateLimit(
+    "MAX_HOST_TRANSACTION_VALUE",
+    event.params.maxHostTransactionValue,
+    id,
+    event.block.number
+  );
+  createOrUpdateLimit(
+    "DAY_HOST_MAX_LIMIT",
+    event.params.dayHostMaxLimit,
+    id,
+    event.block.number
+  );
+  createOrUpdateLimit(
+    "DAY_HOST_MAX_LIMIT_FOR_ONE_ADDRESS",
+    event.params.dayHostMaxLimitForOneAddress,
+    id,
+    event.block.number
+  );
+  createOrUpdateLimit(
+    "MAX_HOST_PENDING_TRANSACTION_LIMIT",
+    event.params.maxHostPendingTransactionLimit,
+    id,
+    event.block.number
+  );
+  createOrUpdateLimit(
+    "MIN_GUEST_TRANSACTION_VALUE",
+    event.params.minGuestTransactionValue,
+    id,
+    event.block.number
+  );
+  createOrUpdateLimit(
+    "MAX_GUEST_TRANSACTION_VALUE",
+    event.params.maxGuestTransactionValue,
+    id,
+    event.block.number
+  );
+  createOrUpdateLimit(
+    "DAY_GUEST_MAX_LIMIT",
+    event.params.dayGuestMaxLimit,
+    id,
+    event.block.number
+  );
+  createOrUpdateLimit(
+    "DAY_GUEST_MAX_LIMIT_FOR_ONE_ADDRESS",
+    event.params.dayGuestMaxLimitForOneAddress,
+    id,
+    event.block.number
+  );
+  createOrUpdateLimit(
+    "MAX_GUEST_PENDING_TRANSACTION_LIMIT",
+    event.params.maxGuestPendingTransactionLimit,
+    id,
+    event.block.number
+  );
 }
 
-export function handleAddCandidateValidator(event: AddCandidateValidator): void {
-  let candidateValidatorMessage = new CandidateValidatorMessage(event.params.messageID.toHex());
+export function handleAddCandidateValidator(
+  event: AddCandidateValidator
+): void {
+  let candidateValidatorMessage = new CandidateValidatorMessage(
+    event.params.messageID.toHex()
+  );
   let ethAddress = event.params.host.toHexString();
   let subAddress = event.params.guest.toHexString();
   candidateValidatorMessage.ethAddress = ethAddress;
@@ -254,11 +358,20 @@ export function handleAddCandidateValidator(event: AddCandidateValidator): void 
   candidateValidatorMessage.ethBlockNumber = event.block.number;
   candidateValidatorMessage.save();
 
-  createOrUpdateCandidateValidator(ethAddress, subAddress, true, event.block.number);
+  createOrUpdateCandidateValidator(
+    ethAddress,
+    subAddress,
+    true,
+    event.block.number
+  );
 }
 
-export function handleRemoveCandidateValidator(event: RemoveCandidateValidator): void {
-  let candidateValidatorMessage = new CandidateValidatorMessage(event.params.messageID.toHex());
+export function handleRemoveCandidateValidator(
+  event: RemoveCandidateValidator
+): void {
+  let candidateValidatorMessage = new CandidateValidatorMessage(
+    event.params.messageID.toHex()
+  );
   let ethAddress = event.params.host.toHexString();
   let subAddress = event.params.guest.toHexString();
   candidateValidatorMessage.ethAddress = ethAddress;
@@ -267,10 +380,17 @@ export function handleRemoveCandidateValidator(event: RemoveCandidateValidator):
   candidateValidatorMessage.ethBlockNumber = event.block.number;
   candidateValidatorMessage.save();
 
-  createOrUpdateCandidateValidator(ethAddress, subAddress, false, event.block.number);
+  createOrUpdateCandidateValidator(
+    ethAddress,
+    subAddress,
+    false,
+    event.block.number
+  );
 }
 
-export function handleProposalCandidatesValidatorsCreated(event: ProposalCandidatesValidatorsCreated): void {
+export function handleProposalCandidatesValidatorsCreated(
+  event: ProposalCandidatesValidatorsCreated
+): void {
   let id = event.params.messageID.toHex();
   let candidatesValidatorsProposal = CandidatesValidatorsProposal.load(id);
   if (candidatesValidatorsProposal == null) {
@@ -278,7 +398,7 @@ export function handleProposalCandidatesValidatorsCreated(event: ProposalCandida
   }
   candidatesValidatorsProposal.status = "PENDING";
   let hosts = event.params.hosts;
-  var newHosts = new Array<String>(hosts.length);
+  var newHosts = new Array<string>(hosts.length);
   for (let i = 0; i < hosts.length; i++) newHosts[i] = hosts[i].toHexString();
   candidatesValidatorsProposal.hosts = newHosts;
   candidatesValidatorsProposal.ethBlockNumber = event.block.number;
@@ -289,28 +409,32 @@ export function handleChangeValidatorsList(event: ChangeValidatorsList): void {
   let id = event.params.messageID.toHex();
   let validatorsListMessage = new ValidatorsListMessage(id);
   let validatorList = event.params.newValidators;
-  var newValidatorList = new Array<String>(0);
+  var newValidatorList = new Array<string>(0);
   for (let i = 0; i < validatorList.length; i++) {
     let ethAddress = validatorList[i].toHexString();
     let candidateValidator = CandidateValidator.load(ethAddress);
     if (candidateValidator != null && candidateValidator.active) {
       newValidatorList.push(candidateValidator.subAddress);
     } else {
-      log.error("can not found active CandidateValidator for {}, messageID: {}", [ethAddress, id]);
+      log.error(
+        "can not found active CandidateValidator for {}, messageID: {}",
+        [ethAddress, id]
+      );
     }
   }
   validatorsListMessage.newValidators = newValidatorList;
-  validatorsListMessage.newHowManyValidatorsDecide = event.params.newHowManyValidatorsDecide;
+  validatorsListMessage.newHowManyValidatorsDecide =
+    event.params.newHowManyValidatorsDecide;
   validatorsListMessage.ethBlockNumber = event.block.number;
   if (newValidatorList.length == validatorList.length) {
-    updateStatusOfCandidatesValidatorsProposal(id, "APPROVED")
+    updateStatusOfCandidatesValidatorsProposal(id, "APPROVED");
     validatorsListMessage.save();
   } else {
     log.error("invalid ChangeValidatorsList event, messageID: {}", [id]);
   }
 }
 
-function changeMessageStatus(id: String, status: String): void {
+function changeMessageStatus(id: string, status: string): void {
   let message = Message.load(id);
   if (message != null) {
     message.status = status;
@@ -318,7 +442,7 @@ function changeMessageStatus(id: String, status: String): void {
   }
 }
 
-function changeProposalStatus(id: String, status: String): void {
+function changeProposalStatus(id: string, status: string): void {
   let proposal = LimitProposal.load(id);
   if (proposal != null) {
     proposal.status = status;
@@ -326,7 +450,14 @@ function changeProposalStatus(id: String, status: String): void {
   }
 }
 
-function createOrUpdateAccount(id: String, messageID: String, kind: String, status: String, timestamp: BigInt, ethBlockNumber: BigInt): void {
+function createOrUpdateAccount(
+  id: string,
+  messageID: string,
+  kind: string,
+  status: string,
+  timestamp: BigInt,
+  ethBlockNumber: BigInt
+): void {
   let account = Account.load(id);
   if (account == null) {
     account = new Account(id);
@@ -339,7 +470,12 @@ function createOrUpdateAccount(id: String, messageID: String, kind: String, stat
   account.save();
 }
 
-function createOrUpdateLimit(id: String, value: BigInt, messageID: String, ethBlockNumber: BigInt): void {
+function createOrUpdateLimit(
+  id: string,
+  value: BigInt,
+  messageID: string,
+  ethBlockNumber: BigInt
+): void {
   let limit = Limit.load(id);
   if (limit == null) {
     limit = new Limit(id);
@@ -351,7 +487,12 @@ function createOrUpdateLimit(id: String, value: BigInt, messageID: String, ethBl
   limit.save();
 }
 
-function createOrUpdateCandidateValidator(ethAddress: String, subAddress: String, active: boolean, ethBlockNumber: BigInt): void {
+function createOrUpdateCandidateValidator(
+  ethAddress: string,
+  subAddress: string,
+  active: boolean,
+  ethBlockNumber: BigInt
+): void {
   let candidateValidator = CandidateValidator.load(ethAddress);
   if (candidateValidator == null) {
     candidateValidator = new CandidateValidator(ethAddress);
@@ -362,22 +503,27 @@ function createOrUpdateCandidateValidator(ethAddress: String, subAddress: String
   candidateValidator.save();
 }
 
-function updateStatusOfCandidatesValidatorsProposal(id: String, status: String): void {
+function updateStatusOfCandidatesValidatorsProposal(
+  id: string,
+  status: string
+): void {
   let candidatesValidatorsProposal = CandidatesValidatorsProposal.load(id);
   if (candidatesValidatorsProposal != null) {
     candidatesValidatorsProposal.status = status;
     candidatesValidatorsProposal.save();
   } else {
-    log.error("can not found CandidatesValidatorsProposal, messageID: {}", [id]);
+    log.error("can not found CandidatesValidatorsProposal, messageID: {}", [
+      id
+    ]);
   }
 }
 
-function generateMessageID(salt: String, ethBlockNumber: BigInt): String {
+function generateMessageID(salt: string, ethBlockNumber: BigInt): string {
   let hex = normalizeLength(salt.concat(ethBlockNumber.toHexString().slice(2)));
   return crypto.keccak256(ByteArray.fromHexString(hex)).toHexString();
 }
 
-function normalizeLength(str: String): String {
+function normalizeLength(str: string): string {
   if (str.length % 2 == 1) {
     return "0".concat(str);
   }
