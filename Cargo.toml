@@ -21,7 +21,7 @@ reqwest = "0.9.22"
 serde = "1.0.101"
 time = "0.1.42"
 
-node-runtime = { git = 'https://github.com/akropolisio/akropolisos-substrate-node.git', branch = 'pricefetch', package = 'akropolisos-runtime' }
+node-runtime = { git = 'https://github.com/akropolisio/akropolisos-substrate-node.git', version = "0.4.2", branch = 'pricefetch', package = 'akropolisos-runtime' }
 
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
