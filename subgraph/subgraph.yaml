@@ -4,7 +4,7 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: DAIContract
-    network: kovan
+    network: rinkeby
     source:
       address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
       abi: DAIContract
@@ -82,7 +82,7 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: cDAIContract
-    network: kovan
+    network: rinkeby
     source:
       address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
       abi: cDAIContract
@@ -160,7 +160,7 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: USDTContract
-    network: kovan
+    network: rinkeby
     source:
       address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
       abi: USDTContract
@@ -238,7 +238,7 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: USDCContract
-    network: kovan
+    network: rinkeby
     source:
       address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
       abi: USDCContract
