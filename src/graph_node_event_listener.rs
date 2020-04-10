@@ -695,6 +695,8 @@ impl From<&all_messages::AllMessagesMessages> for Event {
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
                     parse_u256(&message.amount),
+                    parse_u256("0"),
+                    // parse_u256(&message.token),
                     parse_u128(&message.eth_block_number),
                 )
             }
@@ -703,6 +705,8 @@ impl From<&all_messages::AllMessagesMessages> for Event {
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
+                    parse_u256("0"),
+                    // parse_u256(&message.token_id),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -726,6 +730,8 @@ impl From<&all_messages::AllMessagesMessages> for Event {
                 parse_h256(&message.id),
                 parse_h160(&message.eth_address),
                 parse_h256(&message.sub_address),
+                parse_u256("0"),
+                // parse_u256(&message.token_id),
                 parse_u256(&message.amount),
                 parse_u128(&message.eth_block_number),
             ),
@@ -742,6 +748,8 @@ impl From<&messages_by_status::MessagesByStatusMessages> for Event {
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
                     parse_u256(&message.amount),
+                    parse_u256("0"),
+                    // parse_u256(&message.token),
                     parse_u128(&message.eth_block_number),
                 )
             }
@@ -750,6 +758,8 @@ impl From<&messages_by_status::MessagesByStatusMessages> for Event {
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
+                    parse_u256("0"),
+                    // parse_u256(&message.token_id),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -773,6 +783,8 @@ impl From<&messages_by_status::MessagesByStatusMessages> for Event {
                 parse_h256(&message.id),
                 parse_h160(&message.eth_address),
                 parse_h256(&message.sub_address),
+                parse_u256("0"),
+                // parse_u256(&message.token_id),
                 parse_u256(&message.amount),
                 parse_u128(&message.eth_block_number),
             ),
@@ -930,6 +942,10 @@ fn parse_h256(hash: &str) -> H256 {
 
 fn parse_h160(hash: &str) -> H160 {
     H160::from_slice(&hash[2..].from_hex::<Vec<_>>().expect("can not parse H160"))
+}
+
+fn parse_u32(maybe_u32: &str) -> u32 {
+    maybe_u32.parse().expect("can not parse u32")
 }
 
 fn parse_u64(maybe_u64: &str) -> u64 {

@@ -3,6 +3,7 @@ query MessagesByStatus($ethBlockNumber: Int!, $status: Status!) {
     id
     ethAddress
     subAddress
+    token
     amount
     status
     direction

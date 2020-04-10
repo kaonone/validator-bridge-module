@@ -1,15 +1,15 @@
 use futures::future::{lazy, poll_fn};
 use log;
-use primitives;
-use substrate_api_client::Api;
+use primitives::{self, crypto::Public};
 use tokio::runtime::{Runtime, TaskExecutor};
 use tokio_threadpool::blocking;
 use web3::{
     futures::Future,
-    types::{Bytes, H160, H256, U256},
+    types::{Bytes, H160, H256, U256, Address},
 };
 
 use std::{
+    convert::TryInto,
     sync::{mpsc::Receiver, Arc},
     thread,
 };
@@ -48,102 +48,68 @@ impl Executor {
     fn start(&self) {
         let runtime = Runtime::new().expect("can not create tokio runtime");
 
-        let mut sub_api = Api::new(self.config.sub_api_url.clone());
-        sub_api.init();
-        let sub_api = Arc::new(sub_api);
-
         let (_eloop, transport) =
             web3::transports::WebSocket::new(&self.config.eth_api_url).unwrap();
         let web3 = web3::Web3::new(transport);
 
-        let contract_abi = include_bytes!("../res/EthContract.abi");
-        let abi =
-            ethabi::Contract::load(contract_abi.to_vec().as_slice()).expect("can not read ABI");
+        let contracts = init_abi(vec!["DAI", "cDAI", "USDT", "USDC"]);
 
-        let abi = Arc::new(abi);
         let web3 = Arc::new(web3);
 
         self.executor_rx.iter().for_each(|event| {
             log::info!("received event: {:?}", event);
             match event {
                 Event::EthBridgePausedMessage(message_id, _block_number) => {
-                    handle_eth_bridge_paused_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_bridge_paused_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthBridgeResumedMessage(message_id, _block_number) => {
-                    handle_eth_bridge_resumed_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_bridge_resumed_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthBridgeStartedMessage(message_id, _eth_address, _block_number) => {
-                    handle_eth_bridge_resumed_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_bridge_resumed_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthBridgeStoppedMessage(message_id, _eth_address, _block_number) => {
-                    handle_eth_bridge_paused_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_bridge_paused_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthRelayMessage(
                     message_id,
                     eth_address,
                     sub_address,
                     amount,
+                    token_id,
                     _block_number,
                 ) => handle_eth_relay_message(
                     &self.config,
                     runtime.executor(),
                     web3.clone(),
-                    abi.clone(),
+                    get_contract(contracts.clone(), token_id.low_u32()),
                     message_id,
                     eth_address,
                     sub_address,
                     amount,
+                    token_id,
                 ),
                 Event::EthApprovedRelayMessage(
                     message_id,
                     eth_address,
                     sub_address,
+                    token_id,
                     amount,
                     _block_number,
                 ) => handle_eth_approved_relay_message(
                     &self.config,
                     runtime.executor(),
-                    sub_api.clone(),
                     message_id,
                     eth_address,
                     sub_address,
+                    token_id,
                     amount,
                 ),
                 Event::EthRevertMessage(message_id, _eth_address, _amount, _block_number) => {
-                    handle_eth_revert_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_revert_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthWithdrawMessage(message_id, _block_number) => {
-                    handle_eth_withdraw_message(
-                        &self.config,
-                        runtime.executor(),
-                        sub_api.clone(),
-                        message_id,
-                    )
+                    handle_eth_withdraw_message(&self.config, runtime.executor(), message_id)
                 }
                 Event::EthHostAccountPausedMessage(_, _, _, _) => (),
                 Event::EthHostAccountResumedMessage(_, _, _, _) => (),
@@ -165,7 +131,6 @@ impl Executor {
                 ) => handle_eth_set_new_limits(
                     &self.config,
                     runtime.executor(),
-                    sub_api.clone(),
                     message_id,
                     min_guest_transaction_value,
                     max_guest_transaction_value,
@@ -181,85 +146,95 @@ impl Executor {
                 ) => handle_eth_validators_list_message(
                     &self.config,
                     runtime.executor(),
-                    sub_api.clone(),
                     message_id,
                     new_validators,
                     new_how_many_validators_decide,
                 ),
-                Event::SubRelayMessage(message_id, _block_number) => handle_sub_relay_message(
-                    &self.config,
-                    runtime.executor(),
-                    sub_api.clone(),
-                    message_id,
-                ),
+                Event::SubRelayMessage(message_id, _block_number) => {
+                    handle_sub_relay_message(&self.config, runtime.executor(), message_id)
+                }
                 Event::SubApprovedRelayMessage(
                     message_id,
                     sub_address,
                     eth_address,
+                    token_id,
                     amount,
                     _block_number,
                 ) => handle_sub_approved_relay_message(
                     &self.config,
                     runtime.executor(),
                     web3.clone(),
-                    abi.clone(),
+                    get_contract(contracts.clone(), token_id.low_u32()),
                     message_id,
                     sub_address,
                     eth_address,
                     amount,
+                    token_id,
                 ),
                 Event::SubBurnedMessage(
                     message_id,
                     _sub_address,
                     _eth_address,
                     _amount,
+                    token_id,
                     _block_number,
                 ) => handle_sub_burned_message(
                     &self.config,
                     runtime.executor(),
                     web3.clone(),
-                    abi.clone(),
+                    get_contract(contracts.clone(), token_id.low_u32()),
                     message_id,
+                    token_id,
                 ),
-                Event::SubMintedMessage(message_id, _block_number) => handle_sub_minted_message(
-                    &self.config,
-                    runtime.executor(),
-                    web3.clone(),
-                    abi.clone(),
-                    message_id,
-                ),
-                Event::SubCancellationConfirmedMessage(message_id, _block_number) => {
+                Event::SubMintedMessage(message_id, token_id, _block_number) => {
+                    handle_sub_minted_message(
+                        &self.config,
+                        runtime.executor(),
+                        web3.clone(),
+                        get_contract(contracts.clone(), token_id.low_u32()),
+                        message_id,
+                        token_id,
+                    )
+                }
+                Event::SubCancellationConfirmedMessage(message_id, token_id, _block_number) => {
                     handle_sub_cancellation_confirmed_message(
                         &self.config,
                         runtime.executor(),
                         web3.clone(),
-                        abi.clone(),
+                        get_contract(contracts.clone(), token_id.low_u32()),
                         message_id,
+                        token_id,
                     )
                 }
                 Event::SubAccountPausedMessage(
                     message_id,
                     sub_address,
+                    _timestamp, 
+                    token_id,
                     _block_number,
                 ) => handle_sub_account_paused_message(
                     &self.config,
                     runtime.executor(),
                     web3.clone(),
-                    abi.clone(),
+                    get_contract(contracts.clone(), token_id.low_u32()),
                     message_id,
                     sub_address,
+                    token_id,
                 ),
                 Event::SubAccountResumedMessage(
                     message_id,
                     sub_address,
+                    _timestamp, 
+                    token_id,
                     _block_number,
                 ) => handle_sub_account_resumed_message(
                     &self.config,
                     runtime.executor(),
                     web3.clone(),
-                    abi.clone(),
+                    get_contract(contracts.clone(), token_id.low_u32()),
                     message_id,
                     sub_address,
+                    token_id,
                 ),
             }
         })
@@ -269,17 +244,17 @@ impl Executor {
 fn handle_eth_bridge_paused_message(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::pause_bridge(
-                    &sub_api.clone(),
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                 );
                 log::info!(
@@ -295,17 +270,17 @@ fn handle_eth_bridge_paused_message(
 fn handle_eth_bridge_resumed_message(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::resume_bridge(
-                    &sub_api.clone(),
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                 );
                 log::info!(
@@ -327,19 +302,20 @@ fn handle_eth_relay_message<T>(
     eth_address: H160,
     sub_address: H256,
     amount: U256,
+    token_id: U256,
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
 {
     let args = (message_id, eth_address, sub_address, amount);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let eth_contract_address = config.eth_contract_address;
+    let contract_address = get_contract_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "approveTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
-            let tx = ethereum_transactions::build(eth_validator_private_key, eth_contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            let tx = ethereum_transactions::build(eth_validator_private_key, contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw approveTransfer: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
                 .then(move |res| {
@@ -364,27 +340,30 @@ fn handle_eth_relay_message<T>(
 fn handle_eth_approved_relay_message(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
     eth_address: H160,
     sub_address: H256,
+    token_id: U256,
     amount: U256,
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let eth_address = primitives::H160::from_slice(&eth_address.to_fixed_bytes());
-    let sub_address = primitives::sr25519::Public::from_slice(&sub_address.to_fixed_bytes());
+    let sub_address = primitives::crypto::AccountId32::from(sub_address.to_fixed_bytes());
+    let token_id = token_id.low_u32();
     let amount = amount.low_u128();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::mint(
-                    &sub_api.clone(),
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                     eth_address,
                     sub_address.clone(),
+                    token_id,
                     amount,
                 );
                 log::info!(
@@ -400,20 +379,16 @@ fn handle_eth_approved_relay_message(
     }));
 }
 
-fn handle_eth_revert_message(
-    config: &Config,
-    task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
-    message_id: H256,
-) {
+fn handle_eth_revert_message(config: &Config, task_executor: TaskExecutor, message_id: H256) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::cancel_transfer(
-                    &sub_api.clone(),
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                 );
@@ -424,20 +399,16 @@ fn handle_eth_revert_message(
     }));
 }
 
-fn handle_eth_withdraw_message(
-    config: &Config,
-    task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
-    message_id: H256,
-) {
+fn handle_eth_withdraw_message(config: &Config, task_executor: TaskExecutor, message_id: H256) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::confirm_transfer(
-                    &sub_api,
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                 );
@@ -451,7 +422,6 @@ fn handle_eth_withdraw_message(
 fn handle_eth_set_new_limits(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
     min_guest_transaction_value: U256,
     max_guest_transaction_value: U256,
@@ -460,12 +430,13 @@ fn handle_eth_set_new_limits(
     max_guest_pending_transaction_limit: U256,
 ) {
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::update_limits(
-                    &sub_api,
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     min_guest_transaction_value.as_u128(),
                     max_guest_transaction_value.as_u128(),
@@ -491,7 +462,6 @@ fn handle_eth_set_new_limits(
 fn handle_eth_validators_list_message(
     config: &Config,
     task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
     message_id: H256,
     new_validators: Vec<H256>,
     new_how_many_validators_decide: U256,
@@ -502,12 +472,13 @@ fn handle_eth_validators_list_message(
         .map(|a| primitives::sr25519::Public::from_slice(&a.to_fixed_bytes()))
         .collect::<Vec<_>>();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::update_validator_list(
-                    &sub_api,
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                     new_how_many_validators_decide.as_u64(),
@@ -525,20 +496,16 @@ fn handle_eth_validators_list_message(
     }));
 }
 
-fn handle_sub_relay_message(
-    config: &Config,
-    task_executor: TaskExecutor,
-    sub_api: Arc<Api>,
-    message_id: H256,
-) {
+fn handle_sub_relay_message(config: &Config, task_executor: TaskExecutor, message_id: H256) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
             blocking(|| {
                 substrate_transactions::approve_transfer(
-                    &sub_api,
+                    sub_api_url.clone(),
                     sub_validator_mnemonic_phrase.clone(),
                     message_id,
                 );
@@ -558,19 +525,20 @@ fn handle_sub_approved_relay_message<T>(
     sub_address: H256,
     eth_address: H160,
     amount: U256,
+    token_id: U256,
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
 {
     let args = (message_id, sub_address, eth_address, amount);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let eth_contract_address = config.eth_contract_address;
+    let contract_address = get_contract_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "withdrawTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
-            let tx = ethereum_transactions::build(eth_validator_private_key, eth_contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            let tx = ethereum_transactions::build(eth_validator_private_key, contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw withdrawTransfer: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
                 .then(move |res| {
@@ -602,19 +570,20 @@ fn handle_sub_minted_message<T>(
     web3: Arc<web3::Web3<T>>,
     abi: Arc<ethabi::Contract>,
     message_id: H256,
+    token_id: U256,
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
 {
     let args = (message_id,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let eth_contract_address = config.eth_contract_address;
+    let contract_address = get_contract_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "confirmTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
-            let tx = ethereum_transactions::build(eth_validator_private_key, eth_contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            let tx = ethereum_transactions::build(eth_validator_private_key, contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw confirmTransfer: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
                 .then(move |res| {
@@ -645,13 +614,14 @@ fn handle_sub_burned_message<T>(
     web3: Arc<web3::Web3<T>>,
     abi: Arc<ethabi::Contract>,
     message_id: H256,
+    token_id: U256,
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
 {
     let args = (message_id,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let eth_contract_address = config.eth_contract_address;
+    let contract_address = get_contract_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "confirmWithdrawTransfer", args);
@@ -661,7 +631,7 @@ fn handle_sub_burned_message<T>(
         .and_then(move |nonce| {
             let tx = ethereum_transactions::build(
                 eth_validator_private_key,
-                eth_contract_address,
+                contract_address,
                 nonce,
                 AMOUNT,
                 eth_gas_price,
@@ -703,19 +673,20 @@ fn handle_sub_cancellation_confirmed_message<T>(
     web3: Arc<web3::Web3<T>>,
     abi: Arc<ethabi::Contract>,
     message_id: H256,
+    token_id: U256,
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
 {
     let args = (message_id,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let eth_contract_address = config.eth_contract_address;
+    let contract_address = get_contract_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "confirmCancelTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
-            let tx = ethereum_transactions::build(eth_validator_private_key, eth_contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            let tx = ethereum_transactions::build(eth_validator_private_key, contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw confirmCancel: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
                 .then(move |res| {
@@ -747,20 +718,21 @@ fn handle_sub_account_paused_message<T>(
     abi: Arc<ethabi::Contract>,
     message_id: H256,
     sub_address: H256,
+    token_id: U256,
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
 {
     let args = (sub_address,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let eth_contract_address = config.eth_contract_address;
+    let contract_address = get_contract_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data =
         ethereum_transactions::build_transaction_data(&abi, "setPausedStatusForGuestAddress", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
-            let tx = ethereum_transactions::build(eth_validator_private_key, eth_contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            let tx = ethereum_transactions::build(eth_validator_private_key, contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw setPausedStatusForGuestAddress: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
                 .then(move |res| {
@@ -792,13 +764,14 @@ fn handle_sub_account_resumed_message<T>(
     abi: Arc<ethabi::Contract>,
     message_id: H256,
     sub_address: H256,
+    token_id: U256,
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
 {
     let args = (sub_address,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let eth_contract_address = config.eth_contract_address;
+    let contract_address = get_contract_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(
@@ -808,7 +781,7 @@ fn handle_sub_account_resumed_message<T>(
     );
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
-            let tx = ethereum_transactions::build(eth_validator_private_key, eth_contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            let tx = ethereum_transactions::build(eth_validator_private_key, contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw setResumedStatusForGuestAddress: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
                 .then(move |res| {
@@ -832,3 +805,44 @@ fn handle_sub_account_resumed_message<T>(
         });
     task_executor.spawn(fut);
 }
+
+fn get_abi(token: u32) -> Arc<ethabi::Contract> {
+    let abi = get_abi_file(token);
+    let abi = ethabi::Contract::load(abi.to_vec().as_slice()).expect("can not read ABI");
+    Arc::new(abi)
+}
+
+fn get_abi_file(token: u32) -> &'static [u8] {
+    match token {
+        0 => include_bytes!("../res/DAIContract.abi"),
+        // 1 => include_bytes!("../res/cDAIContract.abi"),
+        // 2 => include_bytes!("../res/USDTContract.abi"),
+        // 3 => include_bytes!("../res/USDContract.abi"),
+        _ => unreachable!(),
+    }
+}
+
+fn init_abi(tokens: Vec<&str>) -> Vec<Arc<ethabi::Contract>> {
+    tokens
+        .iter()
+        .enumerate()
+        .map(|(i, _t)| get_abi(i as u32))
+        .collect()
+}
+
+fn get_contract(tokens: Vec<Arc<ethabi::Contract>>, token: u32) -> Arc<ethabi::Contract> {
+    let i : usize = token.try_into().expect("could not convert token index to usize");
+    tokens[i].clone()
+}
+
+fn get_contract_address(token: u32, config: &Config) -> Address {
+    match token {
+        0 => config.dai_contract_address,
+        1 => config.cdai_contract_address,
+        2 => config.usdt_contract_address,
+        3 => config.usdc_contract_address,
+        _ => unreachable!(),
+    }
+}
+
+

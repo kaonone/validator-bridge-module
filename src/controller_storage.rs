@@ -94,12 +94,13 @@ impl ControllerStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use web3::types::H160;
+    use web3::types::{H160, U256};
 
     const MESSAGE_ID: [u8; 32] = [0; 32];
     const MESSAGE_ID2: [u8; 32] = [1; 32];
     const ETH_ADDRESS: [u8; 20] = [7; 20];
     const SUB_ADDRESS: [u8; 32] = [7; 32];
+    const TOKEN_ID: u64 = 0;
     const AMOUNT: u128 = 0;
     const BLOCK_NUMBER: u128 = 0;
 
@@ -139,6 +140,7 @@ mod tests {
 
     #[test]
     fn blocking_and_unblocking_account_tests() {
+        let TOKEN_ID_ETH = U256::from(0);
         let mut storage = ControllerStorage::new();
         let address = H160::from_slice(&ETH_ADDRESS);
         let event = Event::EthRelayMessage(
@@ -146,6 +148,7 @@ mod tests {
             address,
             H256::from_slice(&SUB_ADDRESS),
             AMOUNT.into(),
+            TOKEN_ID_ETH,
             BLOCK_NUMBER,
         );
         let event2 = Event::EthRelayMessage(
@@ -153,6 +156,7 @@ mod tests {
             address,
             H256::from_slice(&SUB_ADDRESS),
             AMOUNT.into(),
+            TOKEN_ID_ETH,
             BLOCK_NUMBER,
         );
         let empty_vec: Vec<Event> = vec![];

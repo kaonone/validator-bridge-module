@@ -7,6 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
+    - name: Install Rust nightly
+      run: rustup update nightly
+    - name: Install Wasm target
+      run: rustup target add wasm32-unknown-unknown --toolchain nightly
+    - name: Install wasm-gc
+      run: cargo +nightly install --git https://github.com/alexcrichton/wasm-gc --force
     - name: Build
       run: cargo build --verbose
     - name: Run tests
