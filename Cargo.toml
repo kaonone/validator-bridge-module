@@ -1,6 +1,6 @@
 [package]
+version = "0.2.1"
 name = "validator"
-version = "0.2.0"
 authors = ["Akropolis Decentralised Ltd., <team@akropolis.io>"]
 edition = "2018"
 
@@ -20,48 +20,47 @@ graphql_client = "0.8.0"
 reqwest = "0.9.22"
 serde = "1.0.101"
 time = "0.1.42"
+failure_derive = "0.1.7"
 
-node-runtime = { git = 'https://github.com/akropolisio/akropolisos-substrate-node.git', version = "0.4.2", branch = 'pricefetch', package = 'akropolisos-runtime' }
+node-runtime = { git = 'https://github.com/alekspickle/akropolisOS-chain-node.git', branch = 'v2.0.0-alpha.6', package = 'akropolisos-runtime' }
 
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
 substrate-bip39 = "0.3.1"
-substrate-api-client = { git = 'https://github.com/scs/substrate-api-client.git', rev = '822b0fd7fe4df5dabdb3c60c75d12d36cccba2f2'}
+substrate-api-client = { features = ['full_crypto'], git = 'https://github.com/alekspickle/substrate-api-client.git', branch = 'v2.0.0-alpha.6', version = '2.0.0'}
 
 [dependencies.consensus]
 git = 'https://github.com/paritytech/substrate.git'
-package = 'pallet-aura'
-rev = '3e651110aa06aa835790df63410a29676243fc54'
+package = 'pallet-babe'
+version = '2.0.0-alpha.6'
 
 [dependencies.system]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'frame-system'
-rev = '3e651110aa06aa835790df63410a29676243fc54'
+version = '2.0.0-alpha.6'
 
 [dependencies.balances]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'pallet-balances'
-rev = '3e651110aa06aa835790df63410a29676243fc54'
+version = '2.0.0-alpha.6'
 
 [dependencies.primitives]
 features = ["full_crypto"]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-core'
-rev = '00a400f82539e2f78e8ddbcd98aea512c87c5f3c' # must match with 'rev' of 'sp-core' in substrate-api-client!
+version = '2.0.0-alpha.6'
 
-[dependencies.primitives-node]
-features = ["full_crypto"]
-git = 'https://github.com/paritytech/substrate.git'
-package = 'sp-core'
-rev = '3e651110aa06aa835790df63410a29676243fc54'
+[dependencies.keyring]
+version = '2.0.0-alpha.6'
+package = "sp-keyring"
 
 [dependencies.runtime-primitives]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-runtime'
-rev = '3e651110aa06aa835790df63410a29676243fc54'
+version = '2.0.0-alpha.6'
 
 [dependencies.parity-codec]
 default-features = false
@@ -71,5 +70,6 @@ version = '3.5'
 [dependencies.codec]
 package = "parity-scale-codec"
 features = ["derive"]
-version = "1.0.0"
+version = "1.3.0"
 default-features = false
+
