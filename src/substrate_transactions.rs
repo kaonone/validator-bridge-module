@@ -2,7 +2,7 @@ use primitives::{
     crypto::{AccountId32, Pair},
     sr25519,
 };
-use substrate_api_client::{compose_extrinsic, Api};
+use substrate_api_client::{compose_extrinsic, XtStatus, Api};
 
 pub fn mint(
     sub_api_url: String,
@@ -26,7 +26,7 @@ pub fn mint(
     );
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode());
+    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
 pub fn approve_transfer(
@@ -38,7 +38,7 @@ pub fn approve_transfer(
     let ext = compose_extrinsic!(sub_api, "Bridge", "approve_transfer", message_id);
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode());
+    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
 pub fn cancel_transfer(
@@ -50,7 +50,7 @@ pub fn cancel_transfer(
     let ext = compose_extrinsic!(sub_api, "Bridge", "cancel_transfer", message_id);
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode());
+    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
 pub fn confirm_transfer(
@@ -62,7 +62,7 @@ pub fn confirm_transfer(
     let ext = compose_extrinsic!(sub_api, "Bridge", "confirm_transfer", message_id);
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode());
+    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
 pub fn pause_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
@@ -70,7 +70,7 @@ pub fn pause_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
     let ext = compose_extrinsic!(sub_api, "Bridge", "pause_bridge");
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode());
+    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
 pub fn resume_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
@@ -78,7 +78,7 @@ pub fn resume_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
     let ext = compose_extrinsic!(sub_api, "Bridge", "resume_bridge");
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode());
+    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
 pub fn update_limits(
@@ -103,7 +103,7 @@ pub fn update_limits(
     );
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode());
+    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
 pub fn update_validator_list(
@@ -124,7 +124,7 @@ pub fn update_validator_list(
     );
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode());
+    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
 fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {

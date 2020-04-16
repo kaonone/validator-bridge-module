@@ -3,7 +3,7 @@ use web3::types::{H160, H256, U256};
 
 use codec::Decode;
 use node_runtime::{bridge, bridge::RawEvent as BridgeEvent, AccountId};
-use primitives::{self, sr25519, crypto};
+use primitives::{self, sr25519};
 use substrate_api_client::{
     events::{EventsDecoder, RuntimeEvent},
     utils::hexstr_to_vec,
