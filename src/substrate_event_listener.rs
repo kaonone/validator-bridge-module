@@ -2,9 +2,8 @@ use log;
 use web3::types::{H160, H256, U256};
 
 use codec::Decode;
-use node_runtime::{bridge, bridge::RawEvent as BridgeEvent};
+use node_runtime::{bridge, bridge::RawEvent as BridgeEvent, AccountId};
 use primitives::{self, sr25519};
-use primitives_node;
 use substrate_api_client::{
     events::{EventsDecoder, RuntimeEvent},
     utils::hexstr_to_vec,
@@ -42,7 +41,7 @@ pub fn spawn(config: Config, controller_tx: Sender<Event>) -> thread::JoinHandle
                     let event_listener = EventListener::new(config, events_in);
                     event_listener.start();
                 })
-                .expect("can not started substrate_event_listener");
+                .expect("can not start substrate_event_listener");
 
             let event_handler = thread::Builder::new()
                 .name("substrate_event_handler".to_string())
@@ -50,12 +49,12 @@ pub fn spawn(config: Config, controller_tx: Sender<Event>) -> thread::JoinHandle
                     let event_handler = EventHandler::new(config2, controller_tx, events_out);
                     event_handler.start();
                 })
-                .expect("can not started substrate_event_handler");
+                .expect("can not start substrate_event_handler");
 
             let _ = event_listener.join();
             let _ = event_handler.join();
         })
-        .expect("can not started substrate_event_processor")
+        .expect("can not start substrate_event_processor")
 }
 
 impl EventListener {
@@ -82,7 +81,7 @@ impl EventHandler {
         self.events_out.iter().for_each(|event| {
             log::debug!("[substrate] got event: {:?}", event);
 
-            let unhex = hexstr_to_vec(event).expect("convert hexstr to vec");
+            let unhex = hexstr_to_vec(event).expect("convert hexstr to vec failed");
             let mut er_enc = unhex.as_slice();
 
             let sub_api = Api::<sr25519::Pair>::new(self.config.sub_api_url.clone());
@@ -117,7 +116,7 @@ impl EventHandler {
 
     fn handle_bridge_event(
         &self,
-        event: BridgeEvent<primitives_node::crypto::AccountId32, primitives::H256, u32>,
+        event: BridgeEvent<AccountId, primitives::H256, u128, u32>,
     ) {
         const BLOCK_NUMBER: u128 = 0;
 
