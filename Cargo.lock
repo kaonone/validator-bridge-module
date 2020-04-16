@@ -64,7 +64,7 @@ dependencies = [
 [[package]]
 name = "akropolisos-runtime"
 version = "0.5.4"
-source = "git+https://github.com/alekspickle/akropolisos-chain-node?branch=v2.0.0-alpha.6#4ec0005770b2821d77131eddb167584fae346cbf"
+source = "git+https://github.com/akropolisio/akropolisos-chain-node?branch=v2.0.0-alpha.6#c6ab14b832ec79e6cec346b29a1231c357447455"
 dependencies = [
  "frame-executive 2.0.0-dev (git+https://github.com/paritytech/substrate.git)",
  "frame-support 2.0.0-dev (git+https://github.com/paritytech/substrate.git)",
@@ -4519,9 +4519,9 @@ dependencies = [
 [[package]]
 name = "substrate-api-client"
 version = "2.0.2"
-source = "git+https://github.com/alekspickle/substrate-api-client?branch=v2.0.0-alpha.6#bd173554188f3c4da8fb7f6e32d415a0027fc9f7"
+source = "git+https://github.com/akropolisio/substrate-api-client?branch=v2.0.0-alpha.6#e50e01e0f105e6678c705e8d92855487d5f9608d"
 dependencies = [
- "akropolisos-runtime 0.5.4 (git+https://github.com/alekspickle/akropolisos-chain-node?branch=v2.0.0-alpha.6)",
+ "akropolisos-runtime 0.5.4 (git+https://github.com/akropolisio/akropolisos-chain-node?branch=v2.0.0-alpha.6)",
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "frame-metadata 11.0.0-dev (git+https://github.com/paritytech/substrate.git)",
  "frame-support 2.0.0-dev (git+https://github.com/paritytech/substrate.git)",
@@ -5192,7 +5192,7 @@ dependencies = [
 name = "validator"
 version = "0.2.1"
 dependencies = [
- "akropolisos-runtime 0.5.4 (git+https://github.com/alekspickle/akropolisos-chain-node?branch=v2.0.0-alpha.6)",
+ "akropolisos-runtime 0.5.4 (git+https://github.com/akropolisio/akropolisos-chain-node?branch=v2.0.0-alpha.6)",
  "dotenv 0.14.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ethabi 8.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -5212,7 +5212,7 @@ dependencies = [
  "sp-core 2.0.0-dev (git+https://github.com/paritytech/substrate.git)",
  "sp-keyring 2.0.0-alpha.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "sp-runtime 2.0.0-dev (git+https://github.com/paritytech/substrate.git)",
- "substrate-api-client 2.0.2 (git+https://github.com/alekspickle/substrate-api-client?branch=v2.0.0-alpha.6)",
+ "substrate-api-client 2.0.2 (git+https://github.com/akropolisio/substrate-api-client?branch=v2.0.0-alpha.6)",
  "substrate-bip39 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -5550,7 +5550,7 @@ dependencies = [
 "checksum aesni 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2f70a6b5f971e473091ab7cfb5ffac6cde81666c4556751d8d5620ead8abf100"
 "checksum ahash 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)" = "6f33b5018f120946c1dcf279194f238a9f146725593ead1c08fa47ff22b0b5d3"
 "checksum aho-corasick 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)" = "58fb5e95d83b38284460a5fda7d6470aa0b8844d283a0b614b8535e880800d2d"
-"checksum akropolisos-runtime 0.5.4 (git+https://github.com/alekspickle/akropolisos-chain-node?branch=v2.0.0-alpha.6)" = "<none>"
+"checksum akropolisos-runtime 0.5.4 (git+https://github.com/akropolisio/akropolisos-chain-node?branch=v2.0.0-alpha.6)" = "<none>"
 "checksum alga 0.9.3 (registry+https://github.com/rust-lang/crates.io-index)" = "4f823d037a7ec6ea2197046bafd4ae150e6bc36f9ca347404f46a46823fa84f2"
 "checksum anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)" = "d9a60d744a80c30fcb657dfe2c1b22bcb3e814c1a1e3674f32bf5820b570fbff"
 "checksum approx 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f0e60b75072ecd4168020818c0107f2857bb6c4e64252d8d3983f6263b40a5c3"
@@ -5981,7 +5981,7 @@ dependencies = [
 "checksum string 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d24114bfcceb867ca7f71a0d3fe45d45619ec47a6fbfa98cb14e14250bfa5d6d"
 "checksum strum 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6138f8f88a16d90134763314e3fc76fa3ed6a7db4725d6acf9a3ef95a3188d22"
 "checksum strum_macros 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0054a7df764039a6cd8592b9de84be4bec368ff081d203a7d5371cbfa8e65c81"
-"checksum substrate-api-client 2.0.2 (git+https://github.com/alekspickle/substrate-api-client?branch=v2.0.0-alpha.6)" = "<none>"
+"checksum substrate-api-client 2.0.2 (git+https://github.com/akropolisio/substrate-api-client?branch=v2.0.0-alpha.6)" = "<none>"
 "checksum substrate-bip39 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "3be511be555a3633e71739a79e4ddff6a6aaa6579fa6114182a51d72c3eb93c5"
 "checksum substrate-bip39 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c004e8166d6e0aa3a9d5fa673e5b7098ff25f930de1013a21341988151e681bb"
 "checksum substrate-build-script-utils 2.0.0-dev (git+https://github.com/paritytech/substrate.git)" = "<none>"
