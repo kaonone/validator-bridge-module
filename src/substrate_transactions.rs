@@ -127,7 +127,7 @@ pub fn update_validator_list(
     let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
-fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
+pub fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
     sr25519::Pair::from_phrase(signer_mnemonic_phrase, None)
         .expect("valid mnemonic phrase")
         .0
