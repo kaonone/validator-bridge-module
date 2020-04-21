@@ -2,7 +2,7 @@ type Message @entity {
   id: ID!
   ethAddress: String!
   subAddress: String!
-  token: BigInt!
+  token: Bytes!
   amount: BigInt!
   status: Status!
   direction: Direction!
