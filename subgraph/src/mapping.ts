@@ -51,7 +51,7 @@ export function handleRelayMessage(event: RelayMessage): void {
   message.ethAddress = event.params.sender.toHexString();
   message.subAddress = event.params.recipient.toHexString();
   message.amount = event.params.amount;
-  message.token = event.params.token;
+  message.token = event.params.token.toHexString();
   message.status = "PENDING";
   message.direction = "ETH2SUB";
   message.ethBlockNumber = event.block.number;
@@ -67,7 +67,7 @@ export function handleWithdrawMessage(event: WithdrawMessage): void {
   message.ethAddress = event.params.recepient.toHexString();
   message.subAddress = event.params.sender.toHexString();
   message.amount = event.params.amount;
-  message.token = event.params.token;
+  message.token = event.params.token.toHexString();
   message.status = "WITHDRAW";
   message.direction = "SUB2ETH";
   message.ethBlockNumber = event.block.number;
