@@ -5,11 +5,11 @@ use tokio::runtime::{Runtime, TaskExecutor};
 use tokio_threadpool::blocking;
 use web3::{
     futures::Future,
-    types::{Bytes, H160, H256, U256, Address},
+    types::{Address, Bytes, H160, H256, U256},
 };
 
 use std::{
-    convert::TryInto,
+    collections::HashMap,
     sync::{mpsc::Receiver, Arc},
     thread,
 };
@@ -20,6 +20,13 @@ use crate::ethereum_transactions;
 use crate::substrate_transactions;
 
 const AMOUNT: u64 = 0;
+
+#[derive(Debug, Clone)]
+struct Token {
+    symbol: String,
+    address: H160,
+    abi: Arc<ethabi::Contract>,
+}
 
 #[derive(Debug)]
 struct Executor {
@@ -52,7 +59,7 @@ impl Executor {
             web3::transports::WebSocket::new(&self.config.eth_api_url).unwrap();
         let web3 = web3::Web3::new(transport);
 
-        let contracts = init_abi(vec!["DAI", "cDAI", "USDT", "USDC"]);
+        let contracts = init_abi(vec![b"DAI", b"cDAI", b"USDT", b"USDC"], &self.config);
 
         let web3 = Arc::new(web3);
 
@@ -75,20 +82,26 @@ impl Executor {
                     message_id,
                     eth_address,
                     sub_address,
-                    amount,
                     token_id,
+                    amount,
                     _block_number,
-                ) => handle_eth_relay_message(
-                    &self.config,
-                    runtime.executor(),
-                    web3.clone(),
-                    get_contract(contracts.clone(), token_id.low_u32()),
-                    message_id,
-                    eth_address,
-                    sub_address,
-                    amount,
-                    token_id,
-                ),
+                ) => {
+                    let abi = get_contract_abi(
+                        contracts.clone(),
+                        get_token_id_by_address(token_id, &self.config),
+                    );
+                    handle_eth_relay_message(
+                        &self.config,
+                        runtime.executor(),
+                        web3.clone(),
+                        abi,
+                        message_id,
+                        eth_address,
+                        sub_address,
+                        amount,
+                        token_id,
+                    )
+                }
                 Event::EthApprovedRelayMessage(
                     message_id,
                     eth_address,
@@ -102,7 +115,7 @@ impl Executor {
                     message_id,
                     eth_address,
                     sub_address,
-                    token_id,
+                    get_token_id_by_address(token_id, &self.config),
                     amount,
                 ),
                 Event::EthRevertMessage(message_id, _eth_address, _amount, _block_number) => {
@@ -164,7 +177,7 @@ impl Executor {
                     &self.config,
                     runtime.executor(),
                     web3.clone(),
-                    get_contract(contracts.clone(), token_id.low_u32()),
+                    get_contract_abi(contracts.clone(), token_id.low_u32()),
                     message_id,
                     sub_address,
                     eth_address,
@@ -182,7 +195,7 @@ impl Executor {
                     &self.config,
                     runtime.executor(),
                     web3.clone(),
-                    get_contract(contracts.clone(), token_id.low_u32()),
+                    get_contract_abi(contracts.clone(), token_id.low_u32()),
                     message_id,
                     token_id,
                 ),
@@ -191,7 +204,7 @@ impl Executor {
                         &self.config,
                         runtime.executor(),
                         web3.clone(),
-                        get_contract(contracts.clone(), token_id.low_u32()),
+                        get_contract_abi(contracts.clone(), token_id.low_u32()),
                         message_id,
                         token_id,
                     )
@@ -201,7 +214,7 @@ impl Executor {
                         &self.config,
                         runtime.executor(),
                         web3.clone(),
-                        get_contract(contracts.clone(), token_id.low_u32()),
+                        get_contract_abi(contracts.clone(), token_id.low_u32()),
                         message_id,
                         token_id,
                     )
@@ -209,14 +222,14 @@ impl Executor {
                 Event::SubAccountPausedMessage(
                     message_id,
                     sub_address,
-                    _timestamp, 
+                    _timestamp,
                     token_id,
                     _block_number,
                 ) => handle_sub_account_paused_message(
                     &self.config,
                     runtime.executor(),
                     web3.clone(),
-                    get_contract(contracts.clone(), token_id.low_u32()),
+                    get_contract_abi(contracts.clone(), token_id.low_u32()),
                     message_id,
                     sub_address,
                     token_id,
@@ -224,14 +237,14 @@ impl Executor {
                 Event::SubAccountResumedMessage(
                     message_id,
                     sub_address,
-                    _timestamp, 
+                    _timestamp,
                     token_id,
                     _block_number,
                 ) => handle_sub_account_resumed_message(
                     &self.config,
                     runtime.executor(),
                     web3.clone(),
-                    get_contract(contracts.clone(), token_id.low_u32()),
+                    get_contract_abi(contracts.clone(), token_id.low_u32()),
                     message_id,
                     sub_address,
                     token_id,
@@ -302,20 +315,21 @@ fn handle_eth_relay_message<T>(
     eth_address: H160,
     sub_address: H256,
     amount: U256,
-    token_id: U256,
+    token_id: H160,
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
 {
     let args = (message_id, eth_address, sub_address, amount);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let contract_address = get_contract_address(token_id.low_u32(), config);
+    let token_id = get_token_id_by_address(token_id, config);
+    let bridge_address = get_bridge_address(token_id, config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "approveTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
-            let tx = ethereum_transactions::build(eth_validator_private_key, contract_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            let tx = ethereum_transactions::build(eth_validator_private_key, bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw approveTransfer: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
                 .then(move |res| {
@@ -343,13 +357,12 @@ fn handle_eth_approved_relay_message(
     message_id: H256,
     eth_address: H160,
     sub_address: H256,
-    token_id: U256,
+    token_id: u32,
     amount: U256,
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let eth_address = primitives::H160::from_slice(&eth_address.to_fixed_bytes());
     let sub_address = primitives::crypto::AccountId32::from(sub_address.to_fixed_bytes());
-    let token_id = token_id.low_u32();
     let amount = amount.low_u128();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
     let sub_api_url = config.sub_api_url.clone();
@@ -532,7 +545,7 @@ fn handle_sub_approved_relay_message<T>(
 {
     let args = (message_id, sub_address, eth_address, amount);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let contract_address = get_contract_address(token_id.low_u32(), config);
+    let contract_address = get_bridge_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "withdrawTransfer", args);
@@ -577,7 +590,7 @@ fn handle_sub_minted_message<T>(
 {
     let args = (message_id,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let contract_address = get_contract_address(token_id.low_u32(), config);
+    let contract_address = get_bridge_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "confirmTransfer", args);
@@ -621,7 +634,7 @@ fn handle_sub_burned_message<T>(
 {
     let args = (message_id,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let contract_address = get_contract_address(token_id.low_u32(), config);
+    let contract_address = get_bridge_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "confirmWithdrawTransfer", args);
@@ -680,7 +693,7 @@ fn handle_sub_cancellation_confirmed_message<T>(
 {
     let args = (message_id,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let contract_address = get_contract_address(token_id.low_u32(), config);
+    let contract_address = get_bridge_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(&abi, "confirmCancelTransfer", args);
@@ -725,7 +738,7 @@ fn handle_sub_account_paused_message<T>(
 {
     let args = (sub_address,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let contract_address = get_contract_address(token_id.low_u32(), config);
+    let contract_address = get_bridge_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data =
@@ -771,7 +784,7 @@ fn handle_sub_account_resumed_message<T>(
 {
     let args = (sub_address,);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
-    let contract_address = get_contract_address(token_id.low_u32(), config);
+    let contract_address = get_bridge_address(token_id.low_u32(), config);
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
     let data = ethereum_transactions::build_transaction_data(
@@ -806,43 +819,78 @@ fn handle_sub_account_resumed_message<T>(
     task_executor.spawn(fut);
 }
 
-fn get_abi(token: u32) -> Arc<ethabi::Contract> {
-    let abi = get_abi_file(token);
-    let abi = ethabi::Contract::load(abi.to_vec().as_slice()).expect("can not read ABI");
-    Arc::new(abi)
+fn get_contract_abi(tokens: HashMap<u32, Token>, token: u32) -> Arc<ethabi::Contract> {
+    tokens
+        .get(&token)
+        .expect("Could not get token by id")
+        .abi
+        .clone()
 }
 
-fn get_abi_file(token: u32) -> &'static [u8] {
+fn get_bridge_address(token: u32, config: &Config) -> Address {
     match token {
-        0 => include_bytes!("../res/DAIContract.abi"),
-        // 1 => include_bytes!("../res/cDAIContract.abi"),
-        // 2 => include_bytes!("../res/USDTContract.abi"),
-        // 3 => include_bytes!("../res/USDContract.abi"),
+        0 => config.dai_bridge_address,
+        1 => config.cdai_bridge_address,
+        2 => config.usdt_bridge_address,
+        3 => config.usdc_bridge_address,
+        _ => unreachable!(),
+    }
+}
+fn get_token_id_by_address(token: H160, config: &Config) -> u32 {
+    let Config {
+        dai_contract_address,
+        cdai_contract_address,
+        usdt_contract_address,
+        usdc_contract_address,
+        ..
+    } = config;
+    match token {
+        t if t == *dai_contract_address => 0,
+        t if t == *cdai_contract_address => 1,
+        t if t == *usdt_contract_address => 2,
+        t if t == *usdc_contract_address => 3,
         _ => unreachable!(),
     }
 }
 
-fn init_abi(tokens: Vec<&str>) -> Vec<Arc<ethabi::Contract>> {
+/// Allocate contracts abi once in a runtime
+fn init_abi(tokens: Vec<&[u8]>, config: &Config) -> HashMap<u32, Token> {
     tokens
         .iter()
         .enumerate()
-        .map(|(i, _t)| get_abi(i as u32))
+        .map(|(i, t)| (i as u32, construct_token(*t, config)))
         .collect()
 }
 
-fn get_contract(tokens: Vec<Arc<ethabi::Contract>>, token: u32) -> Arc<ethabi::Contract> {
-    let i : usize = token.try_into().expect("could not convert token index to usize");
-    tokens[i].clone()
+// used only here ^
+fn construct_token(symbol: &[u8], config: &Config) -> Token {
+    let abi = get_abi_file(symbol);
+    let abi = ethabi::Contract::load(abi.to_vec().as_slice()).expect("can not read ABI");
+    let abi = Arc::new(abi);
+    let address = get_contract_address(symbol, config);
+    let symbol = String::from_utf8(symbol.to_vec()).expect("could not convert symbol to String");
+    Token {
+        symbol,
+        address,
+        abi,
+    }
 }
-
-fn get_contract_address(token: u32, config: &Config) -> Address {
-    match token {
-        0 => config.dai_contract_address,
-        1 => config.cdai_contract_address,
-        2 => config.usdt_contract_address,
-        3 => config.usdc_contract_address,
+// used only here ^
+fn get_contract_address(symbol: &[u8], config: &Config) -> Address {
+    match symbol {
+        b"DAI" => config.dai_contract_address,
+        b"cDAI" => config.cdai_contract_address,
+        b"USDT" => config.usdt_contract_address,
+        b"USDC" => config.usdc_contract_address,
         _ => unreachable!(),
     }
 }
-
-
+fn get_abi_file(token: &[u8]) -> &'static [u8] {
+    match token {
+        b"DAI" => include_bytes!("../res/contracts/DAIContract.json"),
+        b"cDAI" => include_bytes!("../res/contracts/cDAIContract.json"),
+        b"USDT" => include_bytes!("../res/contracts/USDTContract.json"),
+        b"USDC" => include_bytes!("../res/contracts/USDCContract.json"),
+        _ => unreachable!(),
+    }
+}

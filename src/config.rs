@@ -19,6 +19,10 @@ pub struct Config {
     pub cdai_contract_address: Address,
     pub usdt_contract_address: Address,
     pub usdc_contract_address: Address,
+    pub dai_bridge_address: Address,
+    pub cdai_bridge_address: Address,
+    pub usdt_bridge_address: Address,
+    pub usdc_bridge_address: Address,
     pub eth_gas_price: u64,
     pub eth_gas: u64,
     pub sub_api_url: String,
@@ -36,6 +40,10 @@ impl Config {
             cdai_contract_address: parse_cdai_contract_address()?,
             usdt_contract_address: parse_usdt_contract_address()?,
             usdc_contract_address: parse_usdc_contract_address()?,
+            dai_bridge_address: parse_dai_bridge_address()?,
+            cdai_bridge_address: parse_cdai_bridge_address()?,
+            usdt_bridge_address: parse_usdt_bridge_address()?,
+            usdc_bridge_address: parse_usdc_bridge_address()?,
             eth_gas_price: parse_eth_gas_price()?,
             eth_gas: parse_eth_gas()?,
             sub_api_url: parse_sub_api_url()?,
@@ -93,6 +101,33 @@ fn parse_usdt_contract_address() -> Result<Address, &'static str> {
 fn parse_usdc_contract_address() -> Result<Address, &'static str> {
     let address =
         env::var("USDC_CONTRACT_ADDRESS").map_err(|_| "can not read USDC_CONTRACT_ADDRESS")?;
+    address[2..]
+        .parse()
+        .map_err(|_| "can not parse contract address")
+}
+fn parse_dai_bridge_address() -> Result<Address, &'static str> {
+    let address = env::var("DAI_BRIDGE_ADDRESS").map_err(|_| "can not read DAI_BRIDGE_ADDRESS")?;
+    address[2..]
+        .parse()
+        .map_err(|_| "can not parse contract address")
+}
+fn parse_cdai_bridge_address() -> Result<Address, &'static str> {
+    let address =
+        env::var("cDAI_BRIDGE_ADDRESS").map_err(|_| "can not read cDAI_BRIDGE_ADDRESS")?;
+    address[2..]
+        .parse()
+        .map_err(|_| "can not parse contract address")
+}
+fn parse_usdt_bridge_address() -> Result<Address, &'static str> {
+    let address =
+        env::var("USDT_BRIDGE_ADDRESS").map_err(|_| "can not read USDT_BRIDGE_ADDRESS")?;
+    address[2..]
+        .parse()
+        .map_err(|_| "can not parse contract address")
+}
+fn parse_usdc_bridge_address() -> Result<Address, &'static str> {
+    let address =
+        env::var("USDC_BRIDGE_ADDRESS").map_err(|_| "can not read USDC_BRIDGE_ADDRESS")?;
     address[2..]
         .parse()
         .map_err(|_| "can not parse contract address")
