@@ -132,7 +132,7 @@ type Message {
   id: ID!
   ethAddress: String!
   subAddress: String!
-  token: Int!
+  token: String!
   amount: String!
   status: Status!
   direction: Direction!

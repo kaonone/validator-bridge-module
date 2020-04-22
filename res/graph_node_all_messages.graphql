@@ -4,6 +4,7 @@ query AllMessages($blockNumber: Int!) {
     ethAddress
     subAddress
     amount
+    token
     status
     direction
     ethBlockNumber
