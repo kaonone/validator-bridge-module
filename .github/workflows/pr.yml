@@ -17,3 +17,7 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Run subgraph codegen
+      run: cd subgraph/ && yarn codegen && cd ..
+    - name: Run subgraph build
+      run: cd subgraph/ && yarn build && cd ..
