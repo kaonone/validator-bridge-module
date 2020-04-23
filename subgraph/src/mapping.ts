@@ -483,7 +483,7 @@ function createOrUpdateLimit(
   }
   limit.value = value;
   limit.messageID = messageID;
-  limit.kind = messageID;
+  limit.kind = id;
   limit.ethBlockNumber = ethBlockNumber;
   limit.save();
 }
