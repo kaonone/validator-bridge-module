@@ -3,14 +3,14 @@ import { BigInt } from "@graphprotocol/graph-ts";
 import { ByteArray } from "@graphprotocol/graph-ts";
 import { log } from "@graphprotocol/graph-ts";
 import { crypto } from "@graphprotocol/graph-ts";
-import { SetNewLimits } from "../generated/Limits/Limits";
-import { ProposalCreated, ProposalApproved } from "../generated/Dao/Dao";
-import { ChangeValidatorsList } from "../generated/ValidatorsOperations/ValidatorsOperations";
+import { SetNewLimits } from "../generated/DAILimits/DAILimits";
+import { ProposalCreated, ProposalApproved } from "../generated/DAIDao/DAIDao";
+import { ChangeValidatorsList } from "../generated/DAIBridge/DAIBridge";
 import {
   AddCandidateValidator,
   RemoveCandidateValidator,
   ProposalCandidatesValidatorsCreated,
-} from "../generated/Candidate/Candidate";
+} from "../generated/DAICandidate/DAICandidate";
 import {
   BridgeStopped,
   BridgeStarted,
@@ -22,7 +22,7 @@ import {
   HostAccountResumedMessage,
   GuestAccountPausedMessage,
   GuestAccountResumedMessage,
-} from "../generated/Status/Status";
+} from "../generated/DAIStatus/DAIStatus";
 import {
   RelayMessage,
   RevertMessage,
@@ -31,7 +31,7 @@ import {
   ConfirmMessage,
   ConfirmWithdrawMessage,
   ConfirmCancelMessage,
-} from "../generated/Transfers/Transfers";
+} from "../generated/DAITransfers/DAITransfers";
 import {
   Account,
   AccountMessage,

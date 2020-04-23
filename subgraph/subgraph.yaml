@@ -6,7 +6,7 @@ dataSources:
     name: DAITransfers
     network: rinkeby
     source:
-      address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
+      address: "0xa3D7a4C2f1E236d1241f6F5bFD5C292AEc5Cee23"
       abi: DAITransfers
     mapping:
       kind: ethereum/events
@@ -43,7 +43,7 @@ dataSources:
     name: DAIDao
     network: rinkeby
     source:
-      address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
+      address: "0x0e600f2fb48c4Ea078Bc3ee1F408E1DCbBeD75B8"
       abi: DAIDao
     mapping:
       kind: ethereum/events
@@ -65,7 +65,7 @@ dataSources:
     name: DAILimits
     network: rinkeby
     source:
-      address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
+      address: "0x8B76d14c7Ba21468A0c2cdC77263da3f9F4Ef7d7"
       abi: DAILimits
     mapping:
       kind: ethereum/events
@@ -84,7 +84,7 @@ dataSources:
     name: DAIStatus
     network: rinkeby
     source:
-      address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
+      address: "0x01161F464b048A39BFEe6D9Cc0E124D8f90186c0"
       abi: DAIStatus
     mapping:
       kind: ethereum/events
@@ -130,7 +130,7 @@ dataSources:
     name: DAICandidate
     network: rinkeby
     source:
-      address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
+      address: "0xA7bA236bcb6a814184fEedB97c241caA001046Ad"
       abi: DAICandidate
     mapping:
       kind: ethereum/events
@@ -152,11 +152,11 @@ dataSources:
           handler: handleProposalCandidatesValidatorsCreated
       file: ./src/mapping.ts
   - kind: ethereum/contract
-    name: DAIValidatorsOperations
+    name: DAIBridge
     network: rinkeby
     source:
       address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
-      abi: DAIValidatorsOperations
+      abi: DAIBridge
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.3
@@ -164,27 +164,8 @@ dataSources:
       entities:
         - ChangeValidatorsList
       abis:
-        - name: DAIValidatorsOperations
-          file: ./abis/ValidatorsOperations.json
-      eventHandlers:
-        - event: ChangeValidatorsList(bytes32,address[],uint256,address[],uint256)
-          handler: handleChangeValidatorsList
-      file: ./src/mapping.ts
-  - kind: ethereum/contract
-    name: cDAIValidatorsOperations
-    network: rinkeby
-    source:
-      address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c3c2"
-      abi: cDAIValidatorsOperations
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.3
-      language: wasm/assemblyscript
-      entities:
-        - ChangeValidatorsList
-      abis:
-        - name: cDAIValidatorsOperations
-          file: ./abis/ValidatorsOperations.json
+        - name: DAIBridge
+          file: ./abis/Bridge.json
       eventHandlers:
         - event: ChangeValidatorsList(bytes32,address[],uint256,address[],uint256)
           handler: handleChangeValidatorsList
