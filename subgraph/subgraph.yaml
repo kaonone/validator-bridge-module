@@ -155,7 +155,7 @@ dataSources:
     name: DAIBridge
     network: rinkeby
     source:
-      address: "0x9ff8c644f09b0b7dc030c8aad52dc1628a22c4c2"
+      address: "0x065039aD33e428537d4d45823Bd18985f3696e00"
       abi: DAIBridge
     mapping:
       kind: ethereum/events
