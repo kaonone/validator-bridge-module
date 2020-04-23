@@ -5,7 +5,7 @@ import { log } from "@graphprotocol/graph-ts";
 import { crypto } from "@graphprotocol/graph-ts";
 import { SetNewLimits } from "../generated/DAILimits/DAILimits";
 import { ProposalCreated, ProposalApproved } from "../generated/DAIDao/DAIDao";
-import { ChangeValidatorsList } from "../generated/DAIValidatorsOperations/DAIValidatorsOperations";
+import { ChangeValidatorsList } from "../generated/DAIBridge/DAIBridge";
 import {
   AddCandidateValidator,
   RemoveCandidateValidator,
