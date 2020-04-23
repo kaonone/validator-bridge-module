@@ -1,4 +1,5 @@
 // Copyright (c) 2017-2019, Substratum LLC (https://substratum.net) and/or its affiliates. All rights reserved.
+#![allow(deprecated)]
 
 use ethereum_types::{Address, U256};
 use ethsign::Signature;

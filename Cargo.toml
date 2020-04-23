@@ -52,6 +52,7 @@ package = 'sp-core'
 version = '2.0.0-alpha.6'
 
 [dependencies.keyring]
+git = 'https://github.com/paritytech/substrate.git'
 version = '2.0.0-alpha.6'
 package = "sp-keyring"
 

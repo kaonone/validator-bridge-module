@@ -3,14 +3,27 @@ import { BigInt } from "@graphprotocol/graph-ts";
 import { ByteArray } from "@graphprotocol/graph-ts";
 import { log } from "@graphprotocol/graph-ts";
 import { crypto } from "@graphprotocol/graph-ts";
+import { SetNewLimits } from "../generated/Limits/Limits";
+import { ProposalCreated, ProposalApproved } from "../generated/Dao/Dao";
+import { ChangeValidatorsList } from "../generated/ValidatorsOperations/ValidatorsOperations";
 import {
-  Contract,
+  AddCandidateValidator,
+  RemoveCandidateValidator,
+  ProposalCandidatesValidatorsCreated,
+} from "../generated/Candidate/Candidate";
+import {
   BridgeStopped,
   BridgeStarted,
   BridgePaused,
   BridgeResumed,
   BridgePausedByVolume,
   BridgeStartedByVolume,
+  HostAccountPausedMessage,
+  HostAccountResumedMessage,
+  GuestAccountPausedMessage,
+  GuestAccountResumedMessage,
+} from "../generated/Status/Status";
+import {
   RelayMessage,
   RevertMessage,
   WithdrawMessage,
@@ -18,19 +31,7 @@ import {
   ConfirmMessage,
   ConfirmWithdrawMessage,
   ConfirmCancelMessage,
-  WithdrawTransferCall,
-  HostAccountPausedMessage,
-  HostAccountResumedMessage,
-  GuestAccountPausedMessage,
-  GuestAccountResumedMessage,
-  SetNewLimits,
-  ProposalCreated,
-  ProposalApproved,
-  AddCandidateValidator,
-  RemoveCandidateValidator,
-  ProposalCandidatesValidatorsCreated,
-  ChangeValidatorsList
-} from "../generated/Contract/Contract";
+} from "../generated/Transfers/Transfers";
 import {
   Account,
   AccountMessage,
@@ -42,7 +43,7 @@ import {
   Message,
   LimitProposal,
   CandidatesValidatorsProposal,
-  ValidatorsListMessage
+  ValidatorsListMessage,
 } from "../generated/schema";
 
 export function handleRelayMessage(event: RelayMessage): void {
@@ -50,7 +51,7 @@ export function handleRelayMessage(event: RelayMessage): void {
   message.ethAddress = event.params.sender.toHexString();
   message.subAddress = event.params.recipient.toHexString();
   message.amount = event.params.amount;
-  message.token = event.params.token;
+  message.token = event.params.token.toHexString();
   message.status = "PENDING";
   message.direction = "ETH2SUB";
   message.ethBlockNumber = event.block.number;
@@ -66,7 +67,7 @@ export function handleWithdrawMessage(event: WithdrawMessage): void {
   message.ethAddress = event.params.recepient.toHexString();
   message.subAddress = event.params.sender.toHexString();
   message.amount = event.params.amount;
-  message.token = event.params.token;
+  message.token = event.params.token.toHexString();
   message.status = "WITHDRAW";
   message.direction = "SUB2ETH";
   message.ethBlockNumber = event.block.number;
@@ -408,7 +409,7 @@ export function handleProposalCandidatesValidatorsCreated(
 export function handleChangeValidatorsList(event: ChangeValidatorsList): void {
   let id = event.params.messageID.toHex();
   let validatorsListMessage = new ValidatorsListMessage(id);
-  let validatorList = event.params.newValidators;
+  let validatorList = event.params.newvalidators;
   var newValidatorList = new Array<string>(0);
   for (let i = 0; i < validatorList.length; i++) {
     let ethAddress = validatorList[i].toHexString();
@@ -513,7 +514,7 @@ function updateStatusOfCandidatesValidatorsProposal(
     candidatesValidatorsProposal.save();
   } else {
     log.error("can not found CandidatesValidatorsProposal, messageID: {}", [
-      id
+      id,
     ]);
   }
 }

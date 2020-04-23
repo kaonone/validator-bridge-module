@@ -114,10 +114,7 @@ impl EventHandler {
         })
     }
 
-    fn handle_bridge_event(
-        &self,
-        event: BridgeEvent<AccountId, primitives::H256, u128, u32>,
-    ) {
+    fn handle_bridge_event(&self, event: BridgeEvent<AccountId, primitives::H256, u128, u32>) {
         const BLOCK_NUMBER: u128 = 0;
 
         log::info!("[substrate] bridge event: {:?}", event);
@@ -167,7 +164,12 @@ impl EventHandler {
                 );
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::AccountPausedMessage(message_id, sub_address, timestamp, token_id) => {
+            bridge::RawEvent::AccountPausedMessage(
+                message_id,
+                sub_address,
+                timestamp,
+                token_id,
+            ) => {
                 let sub_address: [u8; 32] = sub_address.to_owned().into();
                 let event = Event::SubAccountPausedMessage(
                     H256::from_slice(message_id.as_bytes()),
@@ -178,7 +180,12 @@ impl EventHandler {
                 );
                 self.controller_tx.send(event).expect("can not send event");
             }
-            bridge::RawEvent::AccountResumedMessage(message_id, sub_address, timestamp, token_id) => {
+            bridge::RawEvent::AccountResumedMessage(
+                message_id,
+                sub_address,
+                timestamp,
+                token_id,
+            ) => {
                 let sub_address: [u8; 32] = sub_address.to_owned().into();
                 let event = Event::SubAccountResumedMessage(
                     H256::from_slice(message_id.as_bytes()),

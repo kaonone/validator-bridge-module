@@ -32,16 +32,16 @@ pub enum Event {
         MessageId,
         EthAddress,
         SubAddress,
+        EthAddress, // token address
         Amount,
-        TokenId,
         BlockNumber,
     ),
     EthApprovedRelayMessage(
         MessageId,
         EthAddress,
         SubAddress,
+        EthAddress, // token address
         Amount,
-        TokenId,
         BlockNumber,
     ),
     EthRevertMessage(MessageId, EthAddress, Amount, BlockNumber),
@@ -66,7 +66,7 @@ pub enum Event {
         Amount,
         BlockNumber,
     ),
-    
+
     EthValidatorsListMessage(MessageId, Vec<SubAddress>, Amount, BlockNumber),
 
     SubRelayMessage(MessageId, BlockNumber),
@@ -173,9 +173,7 @@ impl Event {
             Self::SubMintedMessage(_, _, block_number) => *block_number,
             Self::SubCancellationConfirmedMessage(_, _, block_number) => *block_number,
             // Bridge management
-            Self::EthSetNewLimits(_, _, _, _, _, _, _, _, _, _, _, block_number) => {
-                *block_number
-            }
+            Self::EthSetNewLimits(_, _, _, _, _, _, _, _, _, _, _, block_number) => *block_number,
             Self::EthBridgePausedMessage(_, block_number) => *block_number,
             Self::EthBridgeResumedMessage(_, block_number) => *block_number,
             Self::EthBridgeStartedMessage(_, _, block_number) => *block_number,
@@ -222,14 +220,6 @@ impl Event {
             Self::SubMintedMessage(_, _, _) => None,
             Self::SubCancellationConfirmedMessage(_, _, _) => None,
             _ => None,
-        }
-    }
-
-    pub fn token_id(&self) -> U256 {
-        match self {
-            Self::EthApprovedRelayMessage(_, _, _, token_id, _, _) => *token_id,
-            Self::SubApprovedRelayMessage(_, _, _, token_id, _, _) => *token_id,
-            _ => U256::from(0),
         }
     }
 }
