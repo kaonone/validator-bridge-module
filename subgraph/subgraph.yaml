@@ -3,11 +3,11 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: DAITransfers
+    name: Transfers
     network: rinkeby
     source:
       address: "0x2C9200538aEE51a5E629350270FFb4aeDaFeF0bb"
-      abi: DAITransfers
+      abi: Transfers
       startBlock: 6365526
     mapping:
       kind: ethereum/events
@@ -22,7 +22,7 @@ dataSources:
         - ConfirmWithdrawMessage
         - ConfirmCancelMessage
       abis:
-        - name: DAITransfers
+        - name: Transfers
           file: ./abis/Transfers.json
       eventHandlers:
         - event: RelayMessage(bytes32,address,bytes32,uint256,address)
@@ -41,11 +41,11 @@ dataSources:
           handler: handleConfirmCancelMessage
       file: ./src/mapping.ts
   - kind: ethereum/contract
-    name: DAIDao
+    name: Dao
     network: rinkeby
     source:
       address: "0x0EB650BcA5b4E8662530BefA6C3c9EaDf4283D7c"
-      abi: DAIDao
+      abi: Dao
       startBlock: 6365526
     mapping:
       kind: ethereum/events
@@ -55,7 +55,7 @@ dataSources:
         - ProposalCreated
         - ProposalApproved
       abis:
-        - name: DAIDao
+        - name: Dao
           file: ./abis/Dao.json
       eventHandlers:
         - event: ProposalCreated(bytes32,address,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
@@ -64,11 +64,11 @@ dataSources:
           handler: handleProposalApproved
       file: ./src/mapping.ts
   - kind: ethereum/contract
-    name: DAILimits
+    name: Limits
     network: rinkeby
     source:
       address: "0x5E9f0235E3e814c242f966d2244bb5dDFdC7aFb4"
-      abi: DAILimits
+      abi: Limits
       startBlock: 6365526
     mapping:
       kind: ethereum/events
@@ -77,18 +77,18 @@ dataSources:
       entities:
         - SetNewLimits
       abis:
-        - name: DAILimits
+        - name: Limits
           file: ./abis/Limits.json
       eventHandlers:
         - event: SetNewLimits(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleSetNewLimits
       file: ./src/mapping.ts
   - kind: ethereum/contract
-    name: DAIStatus
+    name: Status
     network: rinkeby
     source:
       address: "0xaea83d49A6F7bD6F25438609Fe50221B922823B7"
-      abi: DAIStatus
+      abi: Status
       startBlock: 6365526
     mapping:
       kind: ethereum/events
@@ -106,7 +106,7 @@ dataSources:
         - GuestAccountPausedMessage
         - GuestAccountResumedMessage
       abis:
-        - name: DAIStatus
+        - name: Status
           file: ./abis/Status.json
       eventHandlers:
         - event: BridgeStarted(bytes32)
@@ -131,11 +131,11 @@ dataSources:
           handler: handleGuestAccountResumedMessage
       file: ./src/mapping.ts
   - kind: ethereum/contract
-    name: DAICandidate
+    name: Candidate
     network: rinkeby
     source:
       address: "0x1fAfc3e490410771B7eeAE2cfEFB4d63251Dde28"
-      abi: DAICandidate
+      abi: Candidate
       startBlock: 6365526
     mapping:
       kind: ethereum/events
@@ -146,7 +146,7 @@ dataSources:
         - RemoveCandidateValidator
         - ProposalCandidatesValidatorsCreated
       abis:
-        - name: DAICandidate
+        - name: Candidate
           file: ./abis/Candidate.json
       eventHandlers:
         - event: AddCandidateValidator(bytes32,address,bytes32)
@@ -157,11 +157,11 @@ dataSources:
           handler: handleProposalCandidatesValidatorsCreated
       file: ./src/mapping.ts
   - kind: ethereum/contract
-    name: DAIBridge
+    name: Bridge
     network: rinkeby
     source:
       address: "0x0315CCA8220FE6510A41f91704716280Cd17905C"
-      abi: DAIBridge
+      abi: Bridge
       startBlock: 6365526
     mapping:
       kind: ethereum/events
@@ -170,7 +170,7 @@ dataSources:
       entities:
         - ChangeValidatorsList
       abis:
-        - name: DAIBridge
+        - name: Bridge
           file: ./abis/Bridge.json
       eventHandlers:
         - event: ChangeValidatorsList(bytes32,address[],uint256,address[],uint256)
