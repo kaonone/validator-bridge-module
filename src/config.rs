@@ -15,16 +15,10 @@ pub struct Config {
     pub eth_api_url: String,
     pub eth_validator_address: Address,
     pub eth_validator_private_key: String,
-    pub dai_contract_address: Address,
-    pub cdai_contract_address: Address,
-    pub usdt_contract_address: Address,
-    pub usdc_contract_address: Address,
-    pub dai_bridge_address: Address,
-    pub cdai_bridge_address: Address,
-    pub usdt_bridge_address: Address,
-    pub usdc_bridge_address: Address,
+    pub token_bridge_address: Address,
     pub eth_gas_price: u64,
     pub eth_gas: u64,
+    pub sub_token_index: u32,
     pub sub_api_url: String,
     pub sub_validator_mnemonic_phrase: String,
 }
@@ -36,16 +30,10 @@ impl Config {
             eth_api_url: parse_eth_api_url()?,
             eth_validator_address: parse_eth_validator_address()?,
             eth_validator_private_key: parse_eth_validator_private_key()?,
-            dai_contract_address: parse_dai_contract_address()?,
-            cdai_contract_address: parse_cdai_contract_address()?,
-            usdt_contract_address: parse_usdt_contract_address()?,
-            usdc_contract_address: parse_usdc_contract_address()?,
-            dai_bridge_address: parse_dai_bridge_address()?,
-            cdai_bridge_address: parse_cdai_bridge_address()?,
-            usdt_bridge_address: parse_usdt_bridge_address()?,
-            usdc_bridge_address: parse_usdc_bridge_address()?,
+            token_bridge_address: parse_token_bridge_address()?,
             eth_gas_price: parse_eth_gas_price()?,
             eth_gas: parse_eth_gas()?,
+            sub_token_index: parse_sub_token_index()?,
             sub_api_url: parse_sub_api_url()?,
             sub_validator_mnemonic_phrase: parse_sub_validator_mnemonic_phrase()?,
         })
@@ -77,57 +65,8 @@ fn parse_eth_validator_private_key() -> Result<String, &'static str> {
     Ok(private_key)
 }
 
-fn parse_dai_contract_address() -> Result<Address, &'static str> {
-    let address =
-        env::var("DAI_CONTRACT_ADDRESS").map_err(|_| "can not read DAI_CONTRACT_ADDRESS")?;
-    address[2..]
-        .parse()
-        .map_err(|_| "can not parse contract address")
-}
-fn parse_cdai_contract_address() -> Result<Address, &'static str> {
-    let address =
-        env::var("cDAI_CONTRACT_ADDRESS").map_err(|_| "can not read cDAI_CONTRACT_ADDRESS")?;
-    address[2..]
-        .parse()
-        .map_err(|_| "can not parse contract address")
-}
-fn parse_usdt_contract_address() -> Result<Address, &'static str> {
-    let address =
-        env::var("USDT_CONTRACT_ADDRESS").map_err(|_| "can not read USDT_CONTRACT_ADDRESS")?;
-    address[2..]
-        .parse()
-        .map_err(|_| "can not parse contract address")
-}
-fn parse_usdc_contract_address() -> Result<Address, &'static str> {
-    let address =
-        env::var("USDC_CONTRACT_ADDRESS").map_err(|_| "can not read USDC_CONTRACT_ADDRESS")?;
-    address[2..]
-        .parse()
-        .map_err(|_| "can not parse contract address")
-}
-fn parse_dai_bridge_address() -> Result<Address, &'static str> {
-    let address = env::var("DAI_BRIDGE_ADDRESS").map_err(|_| "can not read DAI_BRIDGE_ADDRESS")?;
-    address[2..]
-        .parse()
-        .map_err(|_| "can not parse contract address")
-}
-fn parse_cdai_bridge_address() -> Result<Address, &'static str> {
-    let address =
-        env::var("cDAI_BRIDGE_ADDRESS").map_err(|_| "can not read cDAI_BRIDGE_ADDRESS")?;
-    address[2..]
-        .parse()
-        .map_err(|_| "can not parse contract address")
-}
-fn parse_usdt_bridge_address() -> Result<Address, &'static str> {
-    let address =
-        env::var("USDT_BRIDGE_ADDRESS").map_err(|_| "can not read USDT_BRIDGE_ADDRESS")?;
-    address[2..]
-        .parse()
-        .map_err(|_| "can not parse contract address")
-}
-fn parse_usdc_bridge_address() -> Result<Address, &'static str> {
-    let address =
-        env::var("USDC_BRIDGE_ADDRESS").map_err(|_| "can not read USDC_BRIDGE_ADDRESS")?;
+fn parse_token_bridge_address() -> Result<Address, &'static str> {
+    let address = env::var("TOKEN_BRIDGE_ADDRESS").map_err(|_| "can not read TOKEN_BRIDGE_ADDRESS")?;
     address[2..]
         .parse()
         .map_err(|_| "can not parse contract address")
@@ -135,14 +74,20 @@ fn parse_usdc_bridge_address() -> Result<Address, &'static str> {
 
 fn parse_eth_gas_price() -> Result<u64, &'static str> {
     env::var("ETH_GAS_PRICE")
-        .or_else(|_| Ok(DEFAULT_GAS_PRICE.to_string()))
-        .map(|x| x.parse().expect("can not parse ETH_GAS_PRICE"))
+    .or_else(|_| Ok(DEFAULT_GAS_PRICE.to_string()))
+    .map(|x| x.parse().expect("can not parse ETH_GAS_PRICE"))
 }
 
 fn parse_eth_gas() -> Result<u64, &'static str> {
     env::var("ETH_GAS")
-        .or_else(|_| Ok(DEFAULT_GAS.to_string()))
-        .map(|x| x.parse().expect("can not parse ETH_GAS"))
+    .or_else(|_| Ok(DEFAULT_GAS.to_string()))
+    .map(|x| x.parse().expect("can not parse ETH_GAS"))
+}
+
+fn parse_sub_token_index() -> Result<u32, &'static str> {
+    env::var("SUB_TOKEN_INDEX")
+    .or_else(|_| Ok("0".into()))
+    .map(|x| x.parse().expect("can not parse SUB_TOKEN_INDEX"))
 }
 
 fn parse_sub_api_url() -> Result<String, &'static str> {
