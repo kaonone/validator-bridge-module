@@ -418,7 +418,7 @@ export function handleChangeValidatorsList(event: ChangeValidatorsList): void {
       newValidatorList.push(candidateValidator.subAddress);
     } else {
       log.error(
-        "can not found active CandidateValidator for {}, messageID: {}",
+        "handleChangeValidatorsList: can not find active CandidateValidator for address:{}, messageID: {}",
         [ethAddress, id]
       );
     }
@@ -431,7 +431,7 @@ export function handleChangeValidatorsList(event: ChangeValidatorsList): void {
     updateStatusOfCandidatesValidatorsProposal(id, "APPROVED");
     validatorsListMessage.save();
   } else {
-    log.error("invalid ChangeValidatorsList event, messageID: {}", [id]);
+    log.error("handleChangeValidatorsList: invalid ChangeValidatorsList event, messageID: {}", [id]);
   }
 }
 
