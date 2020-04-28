@@ -304,12 +304,17 @@ fn handle_eth_relay_message<T>(
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
-{
+    {
+    log::debug!("handle_eth_relay_message");
+    
     let args = (message_id, eth_address, sub_address, amount);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
     let bridge_address = config.token_bridge_address;
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
+
+    log::debug!("handle_eth_relay_message:args:message_id:{:?} eth_address:{:?}, sub_address:{:?}, amount:{:?}", message_id, eth_address, sub_address, amount);
+    
     let data = ethereum_transactions::build_transaction_data(&abi, "approveTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {

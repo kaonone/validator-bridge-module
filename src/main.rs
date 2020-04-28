@@ -1,6 +1,6 @@
 use dotenv::dotenv;
 use env_logger;
-
+//use log;
 use std::sync::mpsc::channel;
 
 mod config;
@@ -14,28 +14,18 @@ mod substrate_transactions;
 
 fn main() {
     env_logger::init();
-    log::info!("Initialized logger");
-
     dotenv().ok();
-    log::info!("Initialized dotenv");
     
     let config = config::Config::load().expect("can not load config");
-    log::info!("Initialized config");
     
     let (controller_tx, controller_rx) = channel();
-    log::info!("Initialized controller channel");
     let (executor_tx, executor_rx) = channel();
-    log::info!("Initialized executor channel");
 
     let controller_thread = controller::spawn(config.clone(), controller_rx, executor_tx);
-    log::info!("spawned controller thread");
     let executor_thread = executor::spawn(config.clone(), executor_rx);
-    log::info!("spawned executor thread");
     let graph_node_event_listener_thread =
         graph_node_event_listener::spawn(config.clone(), controller_tx.clone());
-    log::info!("spawned graph node listener thread");
     let substrate_event_listener_thread = substrate_event_listener::spawn(config, controller_tx);
-    log::info!("spawned substrate event listener thread");
 
     let _ = controller_thread.join().expect("controller thread failed");
     let _ = executor_thread.join().expect("executor thread failed");
@@ -81,12 +71,9 @@ mod tests {
         let (executor_tx, executor_rx) = channel();
         
         let controller_thread = controller::spawn(config.clone(), controller_rx, executor_tx);
-        log::info!("spawned controller thread");
         let executor_thread = executor::spawn(config.clone(), executor_rx);
-        log::info!("spawned executor thread");
         let graph_node_event_listener_thread =
         graph_node_event_listener::spawn(config.clone(), controller_tx.clone());
-        log::info!("spawned graph node listener thread");
         
         let _ = controller_thread.join().expect("controller thread failed");
         let _ = executor_thread.join().expect("executor thread failed");

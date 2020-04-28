@@ -121,8 +121,6 @@ pub fn spawn(
     controller_rx: Receiver<Event>,
     executor_tx: Sender<Event>,
 ) -> thread::JoinHandle<()> {
-    log::info!("spawning controller thread ");
-
     thread::Builder::new()
         .name("controller".to_string())
         .spawn(move || {
