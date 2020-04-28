@@ -228,7 +228,7 @@ impl Controller {
     fn new(config: Config, controller_rx: Receiver<Event>, executor_tx: Sender<Event>) -> Self {
         Controller {
             config,
-            status: Status::NotReady,
+            status: Status::Active,
             controller_rx,
             executor_tx,
             storage: ControllerStorage::new(),
@@ -251,15 +251,16 @@ impl Controller {
                         Status::Active => {
                             handle_account_control_events(storage, &event);
                             let deferred_events =
-                                storage.iter_events_queue().cloned().collect::<Vec<_>>();
+                            storage.iter_events_queue().cloned().collect::<Vec<_>>();
                             deferred_events.iter().cloned().for_each(|event| {
                                 handle_account_control_events(storage, &event);
                                 executor_tx.send(event).expect("can not sent event")
                             });
                             storage.clear_events_queue();
                             if event.event_type() == EventType::Transfer
-                                && storage.is_account_blocked(event.sender())
+                            && storage.is_account_blocked(event.sender())
                             {
+                                log::info!("putting event in a queue: {:?}", event);
                                 storage.put_event_to_account_queue(event)
                             } else {
                                 executor_tx.send(event).expect("can not sent event")
