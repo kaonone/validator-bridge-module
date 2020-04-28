@@ -457,6 +457,7 @@ impl EventListener {
         let request_body = AllMessages::build_query(all_messages::Variables {
             block_number: self.messages_offset as i64,
         });
+        log::debug!("ALL messages query: {:?}", request_body);
         let client = reqwest::Client::new();
         let mut res = client
             .post(&self.config.graph_node_api_url)
@@ -695,6 +696,7 @@ impl EventListener {
 
 impl From<&all_messages::AllMessagesMessages> for Event {
     fn from(message: &all_messages::AllMessagesMessages) -> Event {
+        log::debug!("converting all_messages query result to Event: {:?}", message.clone());
         match (&message.status, &message.direction) {
             (all_messages::Status::PENDING, all_messages::Direction::ETH2SUB) => {
                 Event::EthRelayMessage(
@@ -746,6 +748,7 @@ impl From<&all_messages::AllMessagesMessages> for Event {
 
 impl From<&messages_by_status::MessagesByStatusMessages> for Event {
     fn from(message: &messages_by_status::MessagesByStatusMessages) -> Self {
+        log::debug!("converting messages_by_status query result to Event: {:?}", message.clone());
         match (&message.status, &message.direction) {
             (messages_by_status::Status::PENDING, messages_by_status::Direction::ETH2SUB) => {
                 Event::EthRelayMessage(

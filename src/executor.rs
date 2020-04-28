@@ -83,6 +83,8 @@ impl Executor {
                     amount,
                     _block_number,
                 ) => {
+                log::debug!("received EthRelayMessage to executor: {:?}", event);
+
                     let abi = get_contract_abi();
                     handle_eth_relay_message(
                         &self.config,
