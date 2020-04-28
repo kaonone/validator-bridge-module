@@ -304,7 +304,7 @@ impl EventListener {
             })
             .map_err(|_: reqwest::Error| ())
             .expect("can not get all_validators_list_messages");
-        log::warn!("{:?}", all_messages.clone());
+        log::warn!("all_messages: {:?}", all_messages.clone());
         events.append(all_messages.as_mut());
         events.append(all_bridge_messages.as_mut());
         events.append(all_account_messages.as_mut());
