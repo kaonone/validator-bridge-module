@@ -320,6 +320,8 @@ fn handle_eth_relay_message<T>(
     let data = ethereum_transactions::build_transaction_data(&abi, "approveTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
+
+            log::debug!("approveTransfer input: private key:{:?} bridge_address:{:?}, nonce:{:?}, AMOUNT:{:?}, eth gas price:{:?}, gas:{:?}, data:{:?}", eth_validator_private_key, bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             let tx = ethereum_transactions::build(eth_validator_private_key, bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw approveTransfer: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
