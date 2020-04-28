@@ -14,12 +14,18 @@ mod substrate_transactions;
 
 fn main() {
     env_logger::init();
+    log::info!("Initialized logger");
+
     dotenv().ok();
-
+    log::info!("Initialized dotenv");
+    
     let config = config::Config::load().expect("can not load config");
-
+    log::info!("Initialized config");
+    
     let (controller_tx, controller_rx) = channel();
+    log::info!("Initialized controller channel");
     let (executor_tx, executor_rx) = channel();
+    log::info!("Initialized executor channel");
 
     let controller_thread = controller::spawn(config.clone(), controller_rx, executor_tx);
     log::info!("spawned controller thread");
