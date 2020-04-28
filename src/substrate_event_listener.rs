@@ -87,7 +87,6 @@ impl EventHandler {
             let sub_api = Api::<sr25519::Pair>::new(self.config.sub_api_url.clone());
             let event_decoder = EventsDecoder::try_from(sub_api.metadata).unwrap();
             let events = event_decoder.decode_events(&mut er_enc);
-            println!("Substrate events {:?}", events);
             match events {
                 Ok(raw_events) => {
                     for (phase, event) in &raw_events {
