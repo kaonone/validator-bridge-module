@@ -22,10 +22,14 @@ fn main() {
     let (executor_tx, executor_rx) = channel();
 
     let controller_thread = controller::spawn(config.clone(), controller_rx, executor_tx);
+    log::info!("spawned controller thread");
     let executor_thread = executor::spawn(config.clone(), executor_rx);
+    log::info!("spawned executor thread");
     let graph_node_event_listener_thread =
-        graph_node_event_listener::spawn(config.clone(), controller_tx.clone());
+    graph_node_event_listener::spawn(config.clone(), controller_tx.clone());
+    log::info!("spawned graph node listener thread");
     let substrate_event_listener_thread = substrate_event_listener::spawn(config, controller_tx);
+    log::info!("spawned substrate event listener thread");
 
     let _ = controller_thread.join();
     let _ = executor_thread.join();

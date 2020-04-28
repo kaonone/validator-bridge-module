@@ -115,14 +115,16 @@ struct MaxBlockNumberOfValidatorsListMessages;
 struct AllValidatorsListMessages;
 
 pub fn spawn(config: Config, controller_tx: Sender<Event>) -> thread::JoinHandle<()> {
-    thread::Builder::new()
-        .name("graph_node_event_listener".to_string())
-        .spawn(move || {
-            let mut event_listener = EventListener::new(config, controller_tx);
-            event_listener.start();
-        })
-        .expect("can not started graph_node_listener")
+    log::info!("spawning graph listener thread");
+thread::Builder::new()
+    .name("graph_node_event_listener".to_string())
+    .spawn(move || {
+        let mut event_listener = EventListener::new(config, controller_tx);
+        event_listener.start();
+    })
+    .expect("can not started graph_node_listener")
 }
+
 
 impl EventListener {
     fn new(config: Config, controller_tx: Sender<Event>) -> Self {
@@ -138,6 +140,7 @@ impl EventListener {
     }
 
     fn start(&mut self) {
+        log::info!("starting graph listener ");
         self.handle_blocked_accounts();
         self.set_offsets();
         self.handle_unfinalized_events();
@@ -148,7 +151,9 @@ impl EventListener {
         }
     }
 
+
     fn handle_blocked_accounts(&self) {
+        log::info!("handling blocked accounts ");
         let events = self
             .get_events_for_blocked_accounts()
             .or_else(|err| {
@@ -162,6 +167,7 @@ impl EventListener {
     }
 
     fn set_offsets(&mut self) {
+        log::info!("setting offsets ");
         let _: Result<(), reqwest::Error> = self
             .get_max_block_number_of_messages()
             .and_then(|block_number| {
@@ -230,6 +236,8 @@ impl EventListener {
     }
 
     fn handle_unfinalized_events(&self) {
+        log::info!("handling unfinalized events ");
+
         const UNFINALIZED_STATUSES: [messages_by_status::Status; 4] = [
             messages_by_status::Status::PENDING,
             messages_by_status::Status::WITHDRAW,
@@ -296,7 +304,7 @@ impl EventListener {
             })
             .map_err(|_: reqwest::Error| ())
             .expect("can not get all_validators_list_messages");
-
+        log::warn!("{:?}", all_messages.clone());
         events.append(all_messages.as_mut());
         events.append(all_bridge_messages.as_mut());
         events.append(all_account_messages.as_mut());
