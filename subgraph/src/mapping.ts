@@ -3,14 +3,14 @@ import { BigInt } from "@graphprotocol/graph-ts";
 import { ByteArray } from "@graphprotocol/graph-ts";
 import { log } from "@graphprotocol/graph-ts";
 import { crypto } from "@graphprotocol/graph-ts";
-import { SetNewLimits } from "../generated/DAILimits/DAILimits";
-import { ProposalCreated, ProposalApproved } from "../generated/DAIDao/DAIDao";
-import { ChangeValidatorsList } from "../generated/DAIBridge/DAIBridge";
+import { SetNewLimits } from "../generated/Limits/Limits";
+import { ProposalCreated, ProposalApproved } from "../generated/Dao/Dao";
+import { ChangeValidatorsList } from "../generated/Bridge/Bridge";
 import {
   AddCandidateValidator,
   RemoveCandidateValidator,
   ProposalCandidatesValidatorsCreated,
-} from "../generated/DAICandidate/DAICandidate";
+} from "../generated/Candidate/Candidate";
 import {
   BridgeStopped,
   BridgeStarted,
@@ -22,7 +22,7 @@ import {
   HostAccountResumedMessage,
   GuestAccountPausedMessage,
   GuestAccountResumedMessage,
-} from "../generated/DAIStatus/DAIStatus";
+} from "../generated/Status/Status";
 import {
   RelayMessage,
   RevertMessage,
@@ -31,7 +31,7 @@ import {
   ConfirmMessage,
   ConfirmWithdrawMessage,
   ConfirmCancelMessage,
-} from "../generated/DAITransfers/DAITransfers";
+} from "../generated/Transfers/Transfers";
 import {
   Account,
   AccountMessage,
@@ -418,7 +418,7 @@ export function handleChangeValidatorsList(event: ChangeValidatorsList): void {
       newValidatorList.push(candidateValidator.subAddress);
     } else {
       log.error(
-        "can not found active CandidateValidator for {}, messageID: {}",
+        "handleChangeValidatorsList: can not find active CandidateValidator for address:{}, messageID: {}",
         [ethAddress, id]
       );
     }
@@ -431,7 +431,7 @@ export function handleChangeValidatorsList(event: ChangeValidatorsList): void {
     updateStatusOfCandidatesValidatorsProposal(id, "APPROVED");
     validatorsListMessage.save();
   } else {
-    log.error("invalid ChangeValidatorsList event, messageID: {}", [id]);
+    log.error("handleChangeValidatorsList: invalid ChangeValidatorsList event, messageID: {}", [id]);
   }
 }
 
@@ -483,7 +483,7 @@ function createOrUpdateLimit(
   }
   limit.value = value;
   limit.messageID = messageID;
-  limit.kind = messageID;
+  limit.kind = id;
   limit.ethBlockNumber = ethBlockNumber;
   limit.save();
 }
