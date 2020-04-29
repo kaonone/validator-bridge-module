@@ -28,7 +28,7 @@ pub fn mint(
         message_id,
         from,
         GenericAddress::from(to),
-        token_id,
+        Compact(token_id),
         Compact(amount)
     );
     log::debug!("extrinsic: {:?}", ext);
@@ -125,7 +125,7 @@ pub fn update_validator_list(
     signer_mnemonic_phrase: String,
     message_id: primitives::H256,
     new_how_many_validators_decide: u64,
-    new_validators: Vec<sr25519::Public>,
+    new_validators: Vec<AccountId32>,
 ) {
     let sub_api = Api::new(sub_api_url).set_signer(get_sr25519_pair(&signer_mnemonic_phrase));
     let ext = compose_extrinsic!(

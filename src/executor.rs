@@ -1,6 +1,6 @@
 use futures::future::{lazy, poll_fn};
 use log;
-use primitives::{self, crypto::Public};
+use primitives::{self, crypto::AccountId32};
 use tokio::runtime::{Runtime, TaskExecutor};
 use tokio_threadpool::blocking;
 use web3::{
@@ -295,15 +295,21 @@ fn handle_eth_relay_message<T>(
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
-    {
+{
     let args = (message_id, eth_address, sub_address, amount);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
     let bridge_address = config.token_bridge_address;
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
 
-    log::info!("handle_eth_relay_message: message_id:{:?} eth_address:{:?}, sub_address:{:?}, amount:{:?}", message_id, eth_address, sub_address, amount);
-    
+    log::info!(
+        "handle_eth_relay_message: message_id:{:?} eth_address:{:?}, sub_address:{:?}, amount:{:?}",
+        message_id,
+        eth_address,
+        sub_address,
+        amount
+    );
+
     let data = ethereum_transactions::build_transaction_data(&abi, "approveTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
@@ -460,9 +466,9 @@ fn handle_eth_validators_list_message(
     new_how_many_validators_decide: U256,
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
-    let new_validators = new_validators
+    let new_validators: Vec<AccountId32> = new_validators
         .iter()
-        .map(|a| primitives::sr25519::Public::from_slice(&a.to_fixed_bytes()))
+        .map(|a| AccountId32::from(a.to_fixed_bytes()))
         .collect::<Vec<_>>();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
     let sub_api_url = config.sub_api_url.clone();
