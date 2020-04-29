@@ -32,7 +32,6 @@ pub enum Event {
         MessageId,
         EthAddress,
         SubAddress,
-        EthAddress, // token address
         Amount,
         BlockNumber,
     ),
@@ -40,7 +39,6 @@ pub enum Event {
         MessageId,
         EthAddress,
         SubAddress,
-        EthAddress, // token address
         Amount,
         BlockNumber,
     ),
@@ -134,8 +132,8 @@ impl Event {
     pub fn message_id(&self) -> &H256 {
         match self {
             // Transfers
-            Self::EthRelayMessage(message_id, _, _, _, _, _) => message_id,
-            Self::EthApprovedRelayMessage(message_id, _, _, _, _, _) => message_id,
+            Self::EthRelayMessage(message_id, _, _, _, _) => message_id,
+            Self::EthApprovedRelayMessage(message_id, _, _, _, _) => message_id,
             Self::EthRevertMessage(message_id, _, _, _) => message_id,
             Self::EthWithdrawMessage(message_id, _) => message_id,
             Self::SubRelayMessage(message_id, _) => message_id,
@@ -163,8 +161,8 @@ impl Event {
     pub fn block_number(&self) -> u128 {
         match self {
             // Transfers
-            Self::EthRelayMessage(_, _, _, _, _, block_number) => *block_number,
-            Self::EthApprovedRelayMessage(_, _, _, _, _, block_number) => *block_number,
+            Self::EthRelayMessage(_, _, _, _, block_number) => *block_number,
+            Self::EthApprovedRelayMessage(_, _, _, _, block_number) => *block_number,
             Self::EthWithdrawMessage(_, block_number) => *block_number,
             Self::EthRevertMessage(_, _, _, block_number) => *block_number,
             Self::SubRelayMessage(_, block_number) => *block_number,
@@ -206,8 +204,8 @@ impl Event {
 
     pub fn sender(&self) -> Option<Address> {
         match self {
-            Self::EthRelayMessage(_, eth_address, _, _, _, _) => Some(Address::Eth(*eth_address)),
-            Self::EthApprovedRelayMessage(_, eth_address, _, _, _, _) => {
+            Self::EthRelayMessage(_, eth_address, _, _, _) => Some(Address::Eth(*eth_address)),
+            Self::EthApprovedRelayMessage(_, eth_address, _, _, _) => {
                 Some(Address::Eth(*eth_address))
             }
             Self::EthRevertMessage(_, eth_address, _, _) => Some(Address::Eth(*eth_address)),
@@ -228,7 +226,7 @@ impl Controller {
     fn new(config: Config, controller_rx: Receiver<Event>, executor_tx: Sender<Event>) -> Self {
         Controller {
             config,
-            status: Status::NotReady,
+            status: Status::Active,
             controller_rx,
             executor_tx,
             storage: ControllerStorage::new(),
@@ -251,15 +249,16 @@ impl Controller {
                         Status::Active => {
                             handle_account_control_events(storage, &event);
                             let deferred_events =
-                                storage.iter_events_queue().cloned().collect::<Vec<_>>();
+                            storage.iter_events_queue().cloned().collect::<Vec<_>>();
                             deferred_events.iter().cloned().for_each(|event| {
                                 handle_account_control_events(storage, &event);
                                 executor_tx.send(event).expect("can not sent event")
                             });
                             storage.clear_events_queue();
                             if event.event_type() == EventType::Transfer
-                                && storage.is_account_blocked(event.sender())
+                            && storage.is_account_blocked(event.sender())
                             {
+                                log::info!("putting event in a queue: {:?}", event);
                                 storage.put_event_to_account_queue(event)
                             } else {
                                 executor_tx.send(event).expect("can not sent event")

@@ -2,7 +2,7 @@ use raw_transaction_builder::{Bip32ECKeyPair, RawTransaction};
 use rustc_hex::FromHex;
 use web3::{self, contract::tokens::Tokenize, types::U256};
 
-const CHAIN_ID: u8 = 42;
+const CHAIN_ID: u8 = 4;
 
 pub fn build_transaction_data<P>(abi: &ethabi::Contract, function_name: &str, params: P) -> Vec<u8>
 where

@@ -115,14 +115,15 @@ struct MaxBlockNumberOfValidatorsListMessages;
 struct AllValidatorsListMessages;
 
 pub fn spawn(config: Config, controller_tx: Sender<Event>) -> thread::JoinHandle<()> {
-    thread::Builder::new()
-        .name("graph_node_event_listener".to_string())
-        .spawn(move || {
-            let mut event_listener = EventListener::new(config, controller_tx);
-            event_listener.start();
-        })
-        .expect("can not started graph_node_listener")
+thread::Builder::new()
+    .name("graph_node_event_listener".to_string())
+    .spawn(move || {
+        let mut event_listener = EventListener::new(config, controller_tx);
+        event_listener.start();
+    })
+    .expect("can not started graph_node_listener")
 }
+
 
 impl EventListener {
     fn new(config: Config, controller_tx: Sender<Event>) -> Self {
@@ -138,6 +139,7 @@ impl EventListener {
     }
 
     fn start(&mut self) {
+        log::debug!("starting graph listener ");
         self.handle_blocked_accounts();
         self.set_offsets();
         self.handle_unfinalized_events();
@@ -148,7 +150,9 @@ impl EventListener {
         }
     }
 
+
     fn handle_blocked_accounts(&self) {
+        log::debug!("handling blocked accounts ");
         let events = self
             .get_events_for_blocked_accounts()
             .or_else(|err| {
@@ -162,6 +166,7 @@ impl EventListener {
     }
 
     fn set_offsets(&mut self) {
+        log::debug!("setting offsets ");
         let _: Result<(), reqwest::Error> = self
             .get_max_block_number_of_messages()
             .and_then(|block_number| {
@@ -230,6 +235,8 @@ impl EventListener {
     }
 
     fn handle_unfinalized_events(&self) {
+        log::debug!("handling unfinalized events ");
+
         const UNFINALIZED_STATUSES: [messages_by_status::Status; 4] = [
             messages_by_status::Status::PENDING,
             messages_by_status::Status::WITHDRAW,
@@ -297,7 +304,7 @@ impl EventListener {
             .map_err(|_: reqwest::Error| ())
             .expect("can not get all_validators_list_messages");
 
-        events.append(all_messages.as_mut());
+            events.append(all_messages.as_mut());
         events.append(all_bridge_messages.as_mut());
         events.append(all_account_messages.as_mut());
         events.append(all_limit_messages.as_mut());
@@ -688,13 +695,13 @@ impl EventListener {
 
 impl From<&all_messages::AllMessagesMessages> for Event {
     fn from(message: &all_messages::AllMessagesMessages) -> Event {
+        log::debug!("converting all_messages query result to Event: {:?}", message.clone());
         match (&message.status, &message.direction) {
             (all_messages::Status::PENDING, all_messages::Direction::ETH2SUB) => {
                 Event::EthRelayMessage(
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
-                    parse_h160(&message.token),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -704,7 +711,6 @@ impl From<&all_messages::AllMessagesMessages> for Event {
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
-                    parse_h160(&message.token),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -728,8 +734,6 @@ impl From<&all_messages::AllMessagesMessages> for Event {
                 parse_h256(&message.id),
                 parse_h160(&message.eth_address),
                 parse_h256(&message.sub_address),
-                parse_h160(&message.token),
-                // parse_u256("0"),
                 parse_u256(&message.amount),
                 parse_u128(&message.eth_block_number),
             ),
@@ -739,13 +743,13 @@ impl From<&all_messages::AllMessagesMessages> for Event {
 
 impl From<&messages_by_status::MessagesByStatusMessages> for Event {
     fn from(message: &messages_by_status::MessagesByStatusMessages) -> Self {
+        log::debug!("converting messages_by_status query result to Event: {:?}", message.clone());
         match (&message.status, &message.direction) {
             (messages_by_status::Status::PENDING, messages_by_status::Direction::ETH2SUB) => {
                 Event::EthRelayMessage(
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
-                    parse_h160(&message.token),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -755,8 +759,6 @@ impl From<&messages_by_status::MessagesByStatusMessages> for Event {
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
-                    parse_h160(&message.token),
-                    // parse_u256("0"),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -780,8 +782,6 @@ impl From<&messages_by_status::MessagesByStatusMessages> for Event {
                 parse_h256(&message.id),
                 parse_h160(&message.eth_address),
                 parse_h256(&message.sub_address),
-                parse_h160(&message.token),
-                // parse_u256("0"),
                 parse_u256(&message.amount),
                 parse_u128(&message.eth_block_number),
             ),
@@ -954,7 +954,10 @@ fn parse_u128(maybe_u128: &str) -> u128 {
 }
 
 fn parse_u256(maybe_u256: &str) -> U256 {
-    maybe_u256.parse().expect("can not parse U256")
+    let maybe_u128: u128 = maybe_u256.parse().expect("can not parse str to u128");
+    let u256 = U256::from(maybe_u128);
+    log::debug!("Graph amount:{:?}, native amount: {:?}, parsed amount:{:?}", maybe_u256, maybe_u128, u256);
+    u256
 }
 
 fn parse_maybe_h160(maybe_hash: &Option<String>) -> H160 {

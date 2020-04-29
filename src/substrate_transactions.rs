@@ -26,7 +26,12 @@ pub fn mint(
     );
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+
+    match tx_hash {
+        Ok(h) => log::info!("multi_signed_mint successdul, tx hash: {:?}", h),
+        Err(e) => log::info!("multi_signed_mint failed, error:{:?}", e),
+    }
 }
 
 pub fn approve_transfer(
