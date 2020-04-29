@@ -27,40 +27,40 @@ raw-transaction-builder = { path = 'raw-transaction-builder' }
 
 substrate-bip39 = "0.3.1"
 node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.4', package = 'akropolisos-runtime', branch = 'aura' }
-substrate-api-client = { git = 'https://github.com/alekspickle/substrate-api-client', version = '2.0.2', branch = 'v2.0.0-alpha.6' }
+substrate-api-client = { git = 'https://github.com/alekspickle/substrate-api-client', version = '2.0.4', branch = 'v2.0.0-alpha.6' }
 #substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '2.0.2', branch = 'v2.0.0-alpha.6' }
 
 [dependencies.consensus]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'pallet-babe'
-version = '2.0.0-alpha.6'
+rev = '710722f02f372601b2dae178d66654b8cb372ab5'
 
 [dependencies.system]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'frame-system'
-version = '2.0.0-alpha.6'
+rev = '710722f02f372601b2dae178d66654b8cb372ab5'
 
 [dependencies.balances]
 default_features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'pallet-balances'
-version = '2.0.0-alpha.6'
+rev = '710722f02f372601b2dae178d66654b8cb372ab5'
 
 [dependencies.primitives]
 features = ["full_crypto"]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-core'
-version = '2.0.0-alpha.6'
+rev = '710722f02f372601b2dae178d66654b8cb372ab5'
 
 [dependencies.keyring]
 git = 'https://github.com/paritytech/substrate.git'
-version = '2.0.0-alpha.6'
+rev = '710722f02f372601b2dae178d66654b8cb372ab5'
 package = "sp-keyring"
 
 [dependencies.runtime-primitives]
 git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-runtime'
-version = '2.0.0-alpha.6'
+rev = '710722f02f372601b2dae178d66654b8cb372ab5'
 
 [dependencies.codec]
 package = "parity-scale-codec"

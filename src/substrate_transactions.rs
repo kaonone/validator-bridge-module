@@ -1,14 +1,19 @@
-use node_runtime::{AccountId, BridgeCall, Call, UncheckedExtrinsic, SignedExtra};
 use codec::{Compact, Encode};
+use node_runtime::{AccountId, BridgeCall, Call, Signature, SignedExtra, UncheckedExtrinsic};
 use primitives::{
+    blake2_256,
     crypto::{AccountId32, Pair},
-    sr25519, H160, H256, blake2_256, hexdisplay::HexDisplay, 
+    hexdisplay::HexDisplay,
+    sr25519, H160, H256,
 };
-use substrate_api_client::{
-    compose_extrinsic, Api, XtStatus, utils::hexstr_to_u256, extrinsic::xt_primitives::GenericAddress,
-};
-use runtime_primitives::generic::Era;
+use runtime_primitives::{generic::Era, MultiSignature};
 use rustc_hex::ToHex;
+use substrate_api_client::{
+    compose_extrinsic,
+    extrinsic::xt_primitives::{GenericAddress, UncheckedExtrinsicV4},
+    utils::hexstr_to_u256,
+    Api, XtStatus,
+};
 
 pub fn mint(
     sub_api_url: String,
@@ -21,7 +26,7 @@ pub fn mint(
 ) {
     let sub_api = Api::new(sub_api_url).set_signer(get_sr25519_pair(&signer_mnemonic_phrase));
     log::debug!("extrinsic input: module: Bridge, extrinsic: multi_signed_mint, from:{:?}, to:{:?}, token_id:{:?}, amount:{:?}", from, to, token_id, amount);
-    let ext = compose_extrinsic!(
+    let ext: UncheckedExtrinsicV4<_> = compose_extrinsic!(
         sub_api.clone(),
         "Bridge",
         "multi_signed_mint",
@@ -147,3 +152,4 @@ pub fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
         .expect("invalid mnemonic phrase")
         .0
 }
+
