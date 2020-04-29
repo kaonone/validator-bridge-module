@@ -16,14 +16,14 @@ pub fn mint(
     let sub_api = Api::new(sub_api_url).set_signer(get_sr25519_pair(&signer_mnemonic_phrase));
     log::debug!("extrinsic input: module: Bridge, extrinsic: multi_signet_mint, from:{:?}, to:{:?}, token_id:{:?}, amount:{:?}", from, to, token_id, amount);
     let ext = compose_extrinsic!(
-        sub_api,
+        sub_api.clone(),
         "Bridge",
         "multi_signed_mint",
         message_id,
         from,
         to,
         token_id,
-        amount
+        Compact(amount)
     );
     log::debug!("extrinsic: {:?}", ext);
     log::debug!("extrinsic_hexed:{:?}", ext.hex_encode());
