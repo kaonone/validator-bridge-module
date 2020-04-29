@@ -14,6 +14,7 @@ pub fn mint(
     amount: u128,
 ) {
     let sub_api = Api::new(sub_api_url).set_signer(get_sr25519_pair(&signer_mnemonic_phrase));
+    log::debug!("extrinsic input: module: Bridge, extrinsic: multi_signet_mint, from:{:?}, to:{:?}, token_id:{:?}, amount:{:?}", from, to, token_id, amount);
     let ext = compose_extrinsic!(
         sub_api,
         "Bridge",
@@ -25,13 +26,15 @@ pub fn mint(
         amount
     );
     log::debug!("extrinsic: {:?}", ext);
+    log::debug!("extrinsic_hexed:{:?}", ext.hex_encode());
     //send and watch extrinsic until finalized
     let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    log::debug!("sent extrinsic:{:?}", tx_hash);
 
     match tx_hash {
         Ok(h) => log::info!("multi_signed_mint successdul, tx hash: {:?}", h),
         Err(e) => log::info!("multi_signed_mint failed, error:{:?}", e),
-    }
+    };
 }
 
 pub fn approve_transfer(

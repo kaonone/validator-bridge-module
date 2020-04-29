@@ -296,21 +296,18 @@ fn handle_eth_relay_message<T>(
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
     {
-    log::debug!("handle_eth_relay_message");
-    
     let args = (message_id, eth_address, sub_address, amount);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
     let bridge_address = config.token_bridge_address;
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
 
-    log::debug!("handle_eth_relay_message:args:message_id:{:?} eth_address:{:?}, sub_address:{:?}, amount:{:?}", message_id, eth_address, sub_address, amount);
+    log::info!("handle_eth_relay_message: message_id:{:?} eth_address:{:?}, sub_address:{:?}, amount:{:?}", message_id, eth_address, sub_address, amount);
     
     let data = ethereum_transactions::build_transaction_data(&abi, "approveTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
 
-            log::debug!("approveTransfer input: bridge_address:{:?}, nonce:{:?}, AMOUNT:{:?}, eth gas price:{:?}, gas:{:?}, data:{:?}", bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             let tx = ethereum_transactions::build(eth_validator_private_key, bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw approveTransfer: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
@@ -341,7 +338,6 @@ fn handle_eth_approved_relay_message(
     sub_address: H256,
     amount: U256,
 ) {
-    
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let eth_address = primitives::H160::from_slice(&eth_address.to_fixed_bytes());
     let sub_address = primitives::crypto::AccountId32::from(sub_address.to_fixed_bytes());
@@ -349,7 +345,7 @@ fn handle_eth_approved_relay_message(
     let amount = amount.low_u128();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
     let sub_api_url = config.sub_api_url.clone();
-    log::debug!("handle_EthRelayMessage");
+    log::debug!("handle_EthApproveRelayMessage");
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
