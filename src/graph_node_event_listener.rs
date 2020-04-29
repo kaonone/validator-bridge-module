@@ -954,8 +954,9 @@ fn parse_u128(maybe_u128: &str) -> u128 {
 }
 
 fn parse_u256(maybe_u256: &str) -> U256 {
-    let u256 = maybe_u256.parse().expect("can not parse U256");
-    log::debug!("Graph amount:{:?}, parsed amount:{:?}", maybe_u256, u256);
+    let maybe_u128: u128 = maybe_u256.parse().expect("can not parse str to u128");
+    let u256 = U256::from(maybe_u128);
+    log::debug!("Graph amount:{:?}, native amount: {:?}, parsed amount:{:?}", maybe_u256, maybe_u128, u256);
     u256
 }
 
