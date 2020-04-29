@@ -26,7 +26,7 @@ failure_derive = "0.1.7"
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
 substrate-bip39 = "0.3.1"
-node-runtime = { git = 'https://github.com/akropolisio/akropolisos-chain-node', version = '0.5.4', package = 'akropolisos-runtime', branch = 'v2.0.0-alpha.6' }
+node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.4', package = 'akropolisos-runtime', branch = 'aura' }
 substrate-api-client = { git = 'https://github.com/alekspickle/substrate-api-client', version = '2.0.2', branch = 'v2.0.0-alpha.6' }
 #substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '2.0.2', branch = 'v2.0.0-alpha.6' }
 
@@ -61,11 +61,6 @@ package = "sp-keyring"
 git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-runtime'
 version = '2.0.0-alpha.6'
-
-[dependencies.parity-codec]
-default-features = false
-features = ['derive']
-version = '3.5'
 
 [dependencies.codec]
 package = "parity-scale-codec"

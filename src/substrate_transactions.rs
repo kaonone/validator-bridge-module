@@ -1,8 +1,14 @@
+use node_runtime::{AccountId, BridgeCall, Call, UncheckedExtrinsic, SignedExtra};
+use codec::{Compact, Encode};
 use primitives::{
     crypto::{AccountId32, Pair},
-    sr25519,
+    sr25519, H160, H256, blake2_256, hexdisplay::HexDisplay, 
 };
-use substrate_api_client::{compose_extrinsic, XtStatus, Api};
+use substrate_api_client::{
+    compose_extrinsic, Api, XtStatus, utils::hexstr_to_u256, extrinsic::xt_primitives::GenericAddress,
+};
+use runtime_primitives::generic::Era;
+use rustc_hex::ToHex;
 
 pub fn mint(
     sub_api_url: String,
@@ -21,7 +27,7 @@ pub fn mint(
         "multi_signed_mint",
         message_id,
         from,
-        to,
+        GenericAddress::from(to),
         token_id,
         Compact(amount)
     );
@@ -137,6 +143,6 @@ pub fn update_validator_list(
 
 pub fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
     sr25519::Pair::from_phrase(signer_mnemonic_phrase, None)
-        .expect("valid mnemonic phrase")
+        .expect("invalid mnemonic phrase")
         .0
 }
