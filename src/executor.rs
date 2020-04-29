@@ -75,8 +75,6 @@ impl Executor {
                     amount,
                     _block_number,
                 ) => {
-                log::debug!("received EthRelayMessage to executor: {:?}", event);
-
                     let abi = get_contract_abi();
                     handle_eth_relay_message(
                         &self.config,
@@ -343,6 +341,7 @@ fn handle_eth_approved_relay_message(
     sub_address: H256,
     amount: U256,
 ) {
+    
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let eth_address = primitives::H160::from_slice(&eth_address.to_fixed_bytes());
     let sub_address = primitives::crypto::AccountId32::from(sub_address.to_fixed_bytes());
@@ -350,6 +349,7 @@ fn handle_eth_approved_relay_message(
     let amount = amount.low_u128();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
     let sub_api_url = config.sub_api_url.clone();
+    log::debug!("handle_EthRelayMessage");
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
