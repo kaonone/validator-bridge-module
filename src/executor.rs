@@ -20,13 +20,6 @@ use crate::substrate_transactions;
 
 const AMOUNT: u64 = 0;
 
-#[derive(Debug, Clone)]
-struct Token {
-    symbol: String,
-    address: H160,
-    abi: Arc<ethabi::Contract>,
-}
-
 #[derive(Debug)]
 struct Executor {
     config: Config,
@@ -79,7 +72,6 @@ impl Executor {
                     message_id,
                     eth_address,
                     sub_address,
-                    _token_id,
                     amount,
                     _block_number,
                 ) => {
@@ -101,7 +93,6 @@ impl Executor {
                     message_id,
                     eth_address,
                     sub_address,
-                    _token_id,
                     amount,
                     _block_number,
                 ) => handle_eth_approved_relay_message(
@@ -321,7 +312,7 @@ fn handle_eth_relay_message<T>(
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
 
-            log::debug!("approveTransfer input: private key:{:?} bridge_address:{:?}, nonce:{:?}, AMOUNT:{:?}, eth gas price:{:?}, gas:{:?}, data:{:?}", eth_validator_private_key, bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
+            log::debug!("approveTransfer input: bridge_address:{:?}, nonce:{:?}, AMOUNT:{:?}, eth gas price:{:?}, gas:{:?}, data:{:?}", bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             let tx = ethereum_transactions::build(eth_validator_private_key, bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw approveTransfer: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))

@@ -457,7 +457,6 @@ impl EventListener {
         let request_body = AllMessages::build_query(all_messages::Variables {
             block_number: self.messages_offset as i64,
         });
-        log::debug!("ALL messages query: {:?}", request_body);
         let client = reqwest::Client::new();
         let mut res = client
             .post(&self.config.graph_node_api_url)
@@ -703,7 +702,6 @@ impl From<&all_messages::AllMessagesMessages> for Event {
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
-                    parse_h160(&message.token),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -713,7 +711,6 @@ impl From<&all_messages::AllMessagesMessages> for Event {
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
-                    parse_h160(&message.token),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -737,8 +734,6 @@ impl From<&all_messages::AllMessagesMessages> for Event {
                 parse_h256(&message.id),
                 parse_h160(&message.eth_address),
                 parse_h256(&message.sub_address),
-                parse_h160(&message.token),
-                // parse_u256("0"),
                 parse_u256(&message.amount),
                 parse_u128(&message.eth_block_number),
             ),
@@ -755,7 +750,6 @@ impl From<&messages_by_status::MessagesByStatusMessages> for Event {
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
-                    parse_h160(&message.token),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -765,8 +759,6 @@ impl From<&messages_by_status::MessagesByStatusMessages> for Event {
                     parse_h256(&message.id),
                     parse_h160(&message.eth_address),
                     parse_h256(&message.sub_address),
-                    parse_h160(&message.token),
-                    // parse_u256("0"),
                     parse_u256(&message.amount),
                     parse_u128(&message.eth_block_number),
                 )
@@ -790,8 +782,6 @@ impl From<&messages_by_status::MessagesByStatusMessages> for Event {
                 parse_h256(&message.id),
                 parse_h160(&message.eth_address),
                 parse_h256(&message.sub_address),
-                parse_h160(&message.token),
-                // parse_u256("0"),
                 parse_u256(&message.amount),
                 parse_u128(&message.eth_block_number),
             ),

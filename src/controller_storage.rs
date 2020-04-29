@@ -139,14 +139,12 @@ mod tests {
 
     #[test]
     fn blocking_and_unblocking_account_tests() {
-        let token_id_eth = H160::from(b"0xbjkhdlwiugdkgkjhdl");
         let mut storage = ControllerStorage::new();
         let address = H160::from_slice(&ETH_ADDRESS);
         let event = Event::EthRelayMessage(
             H256::from_slice(&MESSAGE_ID),
             address,
             H256::from_slice(&SUB_ADDRESS),
-            token_id_eth,
             AMOUNT.into(),
             BLOCK_NUMBER,
         );
@@ -154,7 +152,6 @@ mod tests {
             H256::from_slice(&MESSAGE_ID2),
             address,
             H256::from_slice(&SUB_ADDRESS),
-            token_id_eth,
             AMOUNT.into(),
             BLOCK_NUMBER,
         );
