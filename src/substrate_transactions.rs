@@ -11,7 +11,6 @@ use rustc_hex::ToHex;
 use substrate_api_client::{
     compose_extrinsic,
     extrinsic::xt_primitives::{GenericAddress, UncheckedExtrinsicV4},
-    utils::hexstr_to_u256,
     Api, XtStatus,
 };
 
