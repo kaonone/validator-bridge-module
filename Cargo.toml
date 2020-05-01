@@ -26,7 +26,7 @@ failure_derive = "0.1.7"
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
 substrate-bip39 = "0.3.1"
-node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.6', package = 'akropolisos-runtime', branch = 'aura' }
+node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.7', package = 'akropolisos-runtime', branch = 'aura' }
 substrate-api-client = { git = 'https://github.com/alekspickle/substrate-api-client', version = '0.4.2', branch = 'custom_node' }
 
 [dependencies.consensus]

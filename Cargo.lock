@@ -63,8 +63,8 @@ dependencies = [
 
 [[package]]
 name = "akropolisos-runtime"
-version = "0.5.6"
-source = "git+https://github.com/alekspickle/akropolisos-chain-node?branch=aura#ea5e4086f203d222313ee97ad47cbde5781b711b"
+version = "0.5.7"
+source = "git+https://github.com/alekspickle/akropolisos-chain-node?branch=aura#fb203d034efc92b3b5708face0b3a2965ddd9a20"
 dependencies = [
  "frame-executive 2.0.0-dev (git+https://github.com/paritytech/substrate.git?rev=710722f02f372601b2dae178d66654b8cb372ab5)",
  "frame-support 2.0.0-dev (git+https://github.com/paritytech/substrate.git?rev=710722f02f372601b2dae178d66654b8cb372ab5)",
@@ -3931,7 +3931,7 @@ name = "substrate-api-client"
 version = "0.4.2"
 source = "git+https://github.com/alekspickle/substrate-api-client?branch=custom_node#641b7bfecc2b79e61b97a36a6af67803ed85c686"
 dependencies = [
- "akropolisos-runtime 0.5.6 (git+https://github.com/alekspickle/akropolisos-chain-node?branch=aura)",
+ "akropolisos-runtime 0.5.7 (git+https://github.com/alekspickle/akropolisos-chain-node?branch=aura)",
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "frame-metadata 11.0.0-alpha.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "frame-support 2.0.0-dev (git+https://github.com/paritytech/substrate.git?rev=710722f02f372601b2dae178d66654b8cb372ab5)",
@@ -3978,7 +3978,7 @@ dependencies = [
 [[package]]
 name = "substrate-wasm-builder-runner"
 version = "1.0.5"
-source = "git+https://github.com/paritytech/substrate.git#58edbf49b40a4ed824834e2dc1fd3f36b3c49d4a"
+source = "git+https://github.com/paritytech/substrate.git#c386dea209a06f73f0742a8dadd2732631c8a17d"
 
 [[package]]
 name = "subtle"
@@ -4445,7 +4445,7 @@ name = "twox-hash"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -4577,7 +4577,7 @@ dependencies = [
 name = "validator"
 version = "0.2.1"
 dependencies = [
- "akropolisos-runtime 0.5.6 (git+https://github.com/alekspickle/akropolisos-chain-node?branch=aura)",
+ "akropolisos-runtime 0.5.7 (git+https://github.com/alekspickle/akropolisos-chain-node?branch=aura)",
  "dotenv 0.14.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "ethabi 8.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4914,7 +4914,7 @@ dependencies = [
 "checksum aesni 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2f70a6b5f971e473091ab7cfb5ffac6cde81666c4556751d8d5620ead8abf100"
 "checksum ahash 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)" = "6f33b5018f120946c1dcf279194f238a9f146725593ead1c08fa47ff22b0b5d3"
 "checksum aho-corasick 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)" = "58fb5e95d83b38284460a5fda7d6470aa0b8844d283a0b614b8535e880800d2d"
-"checksum akropolisos-runtime 0.5.6 (git+https://github.com/alekspickle/akropolisos-chain-node?branch=aura)" = "<none>"
+"checksum akropolisos-runtime 0.5.7 (git+https://github.com/alekspickle/akropolisos-chain-node?branch=aura)" = "<none>"
 "checksum alga 0.9.3 (registry+https://github.com/rust-lang/crates.io-index)" = "4f823d037a7ec6ea2197046bafd4ae150e6bc36f9ca347404f46a46823fa84f2"
 "checksum anyhow 1.0.28 (registry+https://github.com/rust-lang/crates.io-index)" = "d9a60d744a80c30fcb657dfe2c1b22bcb3e814c1a1e3674f32bf5820b570fbff"
 "checksum approx 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f0e60b75072ecd4168020818c0107f2857bb6c4e64252d8d3983f6263b40a5c3"
