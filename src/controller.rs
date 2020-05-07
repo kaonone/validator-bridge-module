@@ -6,6 +6,7 @@ use std::thread;
 
 use crate::config::Config;
 use crate::controller_storage::ControllerStorage;
+use node_runtime::Balance;
 
 type MessageId = H256;
 type EthAddress = H160;
@@ -89,6 +90,7 @@ pub enum Event {
 
     SubAccountPausedMessage(MessageId, SubAddress, Timestamp, TokenId, BlockNumber),
     SubAccountResumedMessage(MessageId, SubAddress, Timestamp, TokenId, BlockNumber),
+    OracleMessage(MessageId, Vec<u8>, Balance),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -99,7 +101,6 @@ enum EventType {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Status {
-    NotReady,
     Active,
     Paused,
     Stopped,
@@ -155,6 +156,7 @@ impl Event {
             Self::EthGuestAccountResumedMessage(message_id, _, _, _) => message_id,
             Self::SubAccountPausedMessage(message_id, _, _, _, _) => message_id,
             Self::SubAccountResumedMessage(message_id, _, _, _, _) => message_id,
+            Self::OracleMessage(message_id, _,_) => message_id,
         }
     }
 
@@ -184,6 +186,7 @@ impl Event {
             Self::EthGuestAccountResumedMessage(_, _, _, block_number) => *block_number,
             Self::SubAccountPausedMessage(_, _, _, _, block_number) => *block_number,
             Self::SubAccountResumedMessage(_, _, _, _, block_number) => *block_number,
+            Self::OracleMessage(_,_, _) => u128::default(),
         }
     }
 

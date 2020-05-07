@@ -4593,6 +4593,7 @@ dependencies = [
  "reqwest 0.9.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-hex 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.106 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 1.0.43 (registry+https://github.com/rust-lang/crates.io-index)",
  "sp-core 2.0.0-dev (git+https://github.com/paritytech/substrate.git?rev=710722f02f372601b2dae178d66654b8cb372ab5)",
  "sp-keyring 2.0.0-dev (git+https://github.com/paritytech/substrate.git?rev=710722f02f372601b2dae178d66654b8cb372ab5)",
  "sp-runtime 2.0.0-dev (git+https://github.com/paritytech/substrate.git?rev=710722f02f372601b2dae178d66654b8cb372ab5)",

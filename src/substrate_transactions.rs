@@ -1,5 +1,7 @@
 use codec::{Compact, Encode};
-use node_runtime::{AccountId, BridgeCall, Call, Signature, SignedExtra, UncheckedExtrinsic};
+use node_runtime::{
+    AccountId, Balance, BridgeCall, Call, Signature, SignedExtra, UncheckedExtrinsic,
+};
 use primitives::{
     blake2_256,
     crypto::{AccountId32, Pair},
@@ -146,9 +148,21 @@ pub fn update_validator_list(
     let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
 }
 
+pub fn record_price(
+    sub_api_url: String,
+    signer_mnemonic_phrase: String,
+    token: Vec<u8>,
+    price: Balance,
+) {
+    let sub_api = Api::new(sub_api_url).set_signer(get_sr25519_pair(&signer_mnemonic_phrase));
+    let ext = compose_extrinsic!(sub_api, "PriceOracle", "record_price", token, price);
+    log::debug!("extrinsic: {:?}", ext);
+    //send and watch extrinsic until finalized
+    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+}
+
 pub fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
     sr25519::Pair::from_phrase(signer_mnemonic_phrase, None)
         .expect("invalid mnemonic phrase")
         .0
 }
-

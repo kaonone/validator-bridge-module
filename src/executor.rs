@@ -8,15 +8,12 @@ use web3::{
     types::{Bytes, H160, H256, U256},
 };
 
+use crate::{config::Config, controller::Event, ethereum_transactions, substrate_transactions};
+use node_runtime::Balance;
 use std::{
     sync::{mpsc::Receiver, Arc},
     thread,
 };
-
-use crate::config::Config;
-use crate::controller::Event;
-use crate::ethereum_transactions;
-use crate::substrate_transactions;
 
 const AMOUNT: u64 = 0;
 
@@ -226,6 +223,9 @@ impl Executor {
                     message_id,
                     sub_address,
                 ),
+                Event::OracleMessage(_message_id, token, price) => {
+                    handle_oracle_message(&self.config, runtime.executor(), token, price)
+                }
             }
         })
     }
@@ -509,6 +509,34 @@ fn handle_sub_relay_message(config: &Config, task_executor: TaskExecutor, messag
                     message_id,
                 );
                 log::info!("[substrate] called approve_transfer({:?})", message_id);
+            })
+            .map_err(|_| panic!("the threadpool shut down"))
+        })
+    }));
+}
+
+fn handle_oracle_message(
+    config: &Config,
+    task_executor: TaskExecutor,
+    token: Vec<u8>,
+    price: Balance,
+) {
+    let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
+
+    task_executor.spawn(lazy(move || {
+        poll_fn(move || {
+            blocking(|| {
+                substrate_transactions::record_price(
+                    sub_api_url.clone(),
+                    sub_validator_mnemonic_phrase.clone(),
+                    token.clone(),
+                    price,
+                );
+                log::info!(
+                    "[substrate] called record_price({:?})",
+                    std::str::from_utf8(&token)
+                );
             })
             .map_err(|_| panic!("the threadpool shut down"))
         })
