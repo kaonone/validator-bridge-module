@@ -23,47 +23,51 @@ serde_json = "1.0"
 time = "0.1.42"
 failure_derive = "0.1.7"
 
-
+substrate-bip39 = { path = 'vendor/substrate-bip39' }
+substrate-api-client = { path = 'vendor/substrate-api-client' }
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
-substrate-bip39 = "0.3.1"
-node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.7', package = 'akropolisos-runtime', branch = 'aura' }
-substrate-api-client = { git = 'https://github.com/alekspickle/substrate-api-client', version = '0.4.2', branch = 'custom_node' }
+node-runtime = { git = 'https://github.com/akropolisio/akropolisos-chain-node', version = '1.0.1', package = 'akropolisos-runtime', branch = 'v1.0' }
 
 [dependencies.consensus]
-git = 'https://github.com/paritytech/substrate.git'
-package = 'pallet-babe'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
+git = 'https://github.com/akropolisio/substrate.git'
+branch = 'v1.0_custom'
+package = 'substrate-consensus-aura'
+
+[dependencies.consensus_authorities]
+default-features = false
+git = 'https://github.com/akropolisio/substrate.git'
+branch = 'v1.0_custom'
+package = 'substrate-consensus-authorities'
 
 [dependencies.system]
-git = 'https://github.com/paritytech/substrate.git'
-package = 'frame-system'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
+default_features = false
+git = 'https://github.com/akropolisio/substrate.git'
+branch = 'v1.0_custom'
+package = 'srml-system'
 
 [dependencies.balances]
 default_features = false
-git = 'https://github.com/paritytech/substrate.git'
-package = 'pallet-balances'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
+git = 'https://github.com/akropolisio/substrate.git'
+branch = 'v1.0_custom'
+package = 'srml-balances'
 
 [dependencies.primitives]
-features = ["full_crypto"]
-git = 'https://github.com/paritytech/substrate.git'
-package = 'sp-core'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
-
-[dependencies.keyring]
-git = 'https://github.com/paritytech/substrate.git'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
-package = "sp-keyring"
+default_features = false
+git = 'https://github.com/akropolisio/substrate.git'
+branch = 'v1.0_custom'
+package = 'substrate-primitives'
 
 [dependencies.runtime-primitives]
-git = 'https://github.com/paritytech/substrate.git'
-package = 'sp-runtime'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
+default_features = false
+git = 'https://github.com/akropolisio/substrate.git'
+branch = 'v1.0_custom'
+package = 'sr-primitives'
 
-[dependencies.codec]
-package = "parity-scale-codec"
-features = ["derive"]
-version = "1.3.0"
+[dependencies.parity-codec]
 default-features = false
+features = ['derive']
+version = '3.5'
+
+[patch.'https://github.com/paritytech/substrate-bip39']
+substrate-bip39 = { path="vendor/substrate-bip39" }
