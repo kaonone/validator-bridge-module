@@ -27,56 +27,56 @@ git = "https://github.com/paritytech/substrate-bip39"
 package="substrate-bip39"
 
 [dependencies.primitives]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 package = "substrate-primitives"
 
 [dependencies.node-primitives]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 
 [dependencies.runtime_io]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 package = "sr-io"
 
 [dependencies.transaction_pool]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 package = "substrate-transaction-pool"
 
 [dependencies.metadata]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 package = "srml-metadata"
 
 [dependencies.balances]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 package = "srml-balances"
 
 [dependencies.keyring]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 package = "substrate-keyring"
 
 [dependencies.system]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 package = "srml-system"
 
 [dependencies.runtime_primitives]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 package = "sr-primitives"
 
 [dependencies.inherents]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 package = "substrate-inherents"
 
 [dev-dependencies.node-runtime]
-git = 'https://github.com/alekspickle/substrate.git'
+git = 'https://github.com/akropolisio/substrate.git'
 branch = 'v1.0_custom'
 features = [ "std" ]
 

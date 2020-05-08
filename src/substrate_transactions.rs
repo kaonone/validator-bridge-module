@@ -1,10 +1,10 @@
-use node_runtime::{AccountId, BridgeCall, Call, UncheckedExtrinsic};
+use node_runtime::{AccountId, BridgeCall, Call, OracleCall, UncheckedExtrinsic};
 use parity_codec::{Compact, Encode};
 use primitives::{H160, H256};
 use rustc_hex::ToHex;
 use substrate_api_client::{hexstr_to_u256, Api};
 
-use node_runtime;
+use crate::controller::Balance;
 use primitives::{blake2_256, crypto::Pair, hexdisplay::HexDisplay, sr25519};
 use runtime_primitives::generic::Era;
 
@@ -122,22 +122,48 @@ pub fn update_validator_list(
     let _tx_hash = sub_api.send_extrinsic(xthex);
 }
 
-// pub fn record_price(
-//     sub_api_url: String,
-//     signer_mnemonic_phrase: String,
-//     token: Vec<u8>,
-//     price: Balance,
-// ) {
-//     let sub_api = Api::new(sub_api_url).set_signer(get_sr25519_pair(&signer_mnemonic_phrase));
-//     let ext = compose_extrinsic!(sub_api, "PriceOracle", "record_price", token, price);
-//     log::debug!("extrinsic: {:?}", ext);
-//     //send and watch extrinsic until finalized
-//     let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
-// }
+pub fn record_price(sub_api: &Api, signer_mnemonic_phrase: String, token: Vec<u8>, price: Balance) {
+    let xthex = build_record_price(
+        &sub_api,
+        get_sr25519_pair(&signer_mnemonic_phrase),
+        token,
+        price,
+    );
+    //send and watch extrinsic until finalized
+    let _tx_hash = sub_api.send_extrinsic(xthex);
+}
 
-
-fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
+pub fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
     sr25519::Pair::from_phrase(signer_mnemonic_phrase, None).expect("invalid menemonic phrase")
+}
+
+fn build_record_price(
+    sub_api: &Api,
+    signer: sr25519::Pair,
+    token: Vec<u8>,
+    price: Balance,
+) -> String {
+    let signer_index = signer_index(sub_api, &signer);
+    let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
+    let function = Call::Oracle(OracleCall::record_price(token, price));
+    let era = Era::immortal();
+
+    log::debug!("using genesis hash: {:?}", genesis_hash);
+    let raw_payload = (Compact(signer_index), function, era, genesis_hash);
+    let signature = sign_raw_payload(&raw_payload, &signer);
+    let ext = UncheckedExtrinsic::new_signed(
+        signer_index,
+        raw_payload.1,
+        signer.public().into(),
+        signature,
+        era,
+    );
+
+    log::debug!("extrinsic: {:?}", ext);
+
+    let mut xthex: String = ext.encode().to_hex();
+    xthex.insert_str(0, "0x");
+    xthex
 }
 
 fn build_mint(

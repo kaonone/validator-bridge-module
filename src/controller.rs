@@ -6,8 +6,9 @@ use std::thread;
 
 use crate::config::Config;
 use crate::controller_storage::ControllerStorage;
-use node_runtime::Balance;
 
+pub type Balance = u128;
+pub type Moment = u64;
 type MessageId = H256;
 type EthAddress = H160;
 type SubAddress = H256;

@@ -4,8 +4,6 @@ name = "validator"
 authors = ["Akropolis Decentralised Ltd., <team@akropolis.io>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 web3 = "0.8.0"
 tokio = "0.1.22"
@@ -28,6 +26,7 @@ substrate-api-client = { path = 'vendor/substrate-api-client' }
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
 node-runtime = { git = 'https://github.com/akropolisio/akropolisos-chain-node', version = '1.0.1', package = 'akropolisos-runtime', branch = 'v1.0' }
+#substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '0.4.2', branch = 'custom_node' }
 
 [dependencies.consensus]
 git = 'https://github.com/akropolisio/substrate.git'

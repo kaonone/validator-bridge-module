@@ -1,6 +1,6 @@
 use futures::future::{lazy, poll_fn};
 use log;
-use primitives::{self, crypto::AccountId32};
+use primitives::{self, sr25519};
 use tokio::runtime::{Runtime, TaskExecutor};
 use tokio_threadpool::blocking;
 use web3::{
@@ -8,13 +8,12 @@ use web3::{
     types::{Bytes, H160, H256, U256},
 };
 
-use crate::{config::Config, controller::Event, ethereum_transactions, substrate_transactions};
-use node_runtime::Balance;
 use std::{
     sync::{mpsc::Receiver, Arc},
     thread,
 };
 
+use crate::{config::Config, controller::{Balance, Event}, ethereum_transactions, substrate_transactions};
 const AMOUNT: u64 = 0;
 
 #[derive(Debug)]
@@ -346,7 +345,7 @@ fn handle_eth_approved_relay_message(
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let eth_address = primitives::H160::from_slice(&eth_address.to_fixed_bytes());
-    let sub_address = primitives::crypto::AccountId32::from(sub_address.to_fixed_bytes());
+    let sub_address = sr25519::Public::from(sub_address.to_fixed_bytes());
     let token_id = config.sub_token_index;
     let amount = amount.low_u128();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
@@ -466,9 +465,9 @@ fn handle_eth_validators_list_message(
     new_how_many_validators_decide: U256,
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
-    let new_validators: Vec<AccountId32> = new_validators
+    let new_validators: Vec<sr25519::Public> = new_validators
         .iter()
-        .map(|a| AccountId32::from(a.to_fixed_bytes()))
+        .map(|a| sr25519::Public::from(a.to_fixed_bytes()))
         .collect::<Vec<_>>();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
     let sub_api_url = config.sub_api_url.clone();

@@ -1,6 +1,5 @@
-use crate::{config::Config, controller::Event};
+use crate::{config::Config, controller::{Event, Balance}};
 use log;
-use node_runtime::Balance;
 use serde_json::{self, Value};
 use std::{collections::HashMap, sync::mpsc::Sender, thread, time::Duration};
 use web3::types::H256;
