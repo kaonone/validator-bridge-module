@@ -1,3 +1,4 @@
+use node_runtime::TokenId;
 use node_runtime::{AccountId, BridgeCall, Call, OracleCall, UncheckedExtrinsic};
 use parity_codec::{Compact, Encode};
 use primitives::{H160, H256};
@@ -14,6 +15,7 @@ pub fn mint(
     message_id: primitives::H256,
     from: primitives::H160,
     to: AccountId,
+    token: TokenId,
     amount: u128,
 ) {
     let xthex = build_mint(
@@ -22,6 +24,7 @@ pub fn mint(
         message_id,
         from,
         to,
+        token,
         amount,
     );
     //send and watch extrinsic until finalized
@@ -172,11 +175,14 @@ fn build_mint(
     message_id: H256,
     from: H160,
     to: AccountId,
+    token: TokenId,
     amount: u128,
 ) -> String {
     let signer_index = signer_index(sub_api, &signer);
     let genesis_hash = sub_api.genesis_hash.expect("can not get genesiss hash");
-    let function = Call::Bridge(BridgeCall::multi_signed_mint(message_id, from, to, amount));
+    let function = Call::Bridge(BridgeCall::multi_signed_mint(
+        message_id, from, to, token, amount,
+    ));
     let era = Era::immortal();
 
     log::debug!("using genesis hash: {:?}", genesis_hash);
