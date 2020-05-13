@@ -1,19 +1,10 @@
-use codec::{Compact, Encode};
-use node_runtime::{
-    AccountId, Balance, BridgeCall, Call, Signature, SignedExtra, UncheckedExtrinsic,
-};
+use node_runtime::Balance;
 use primitives::{
-    blake2_256,
     crypto::{AccountId32, Pair},
-    hexdisplay::HexDisplay,
-    sr25519, H160, H256,
+    sr25519,
 };
-use runtime_primitives::{generic::Era, MultiSignature};
-use rustc_hex::ToHex;
 use substrate_api_client::{
-    compose_extrinsic,
-    extrinsic::xt_primitives::{GenericAddress, UncheckedExtrinsicV4},
-    Api, XtStatus,
+    compose_extrinsic, extrinsic::xt_primitives::UncheckedExtrinsicV4, Api, XtStatus,
 };
 
 pub fn mint(
@@ -39,14 +30,14 @@ pub fn mint(
     );
     let ext_hexed = ext.hex_encode();
     log::debug!("extrinsic: {:?}", ext);
-    log::debug!("extrinsic_hexed:{:?}", ext_hexed);
     //send and watch extrinsic until finalized
     let tx_hash = sub_api.send_extrinsic(ext_hexed, XtStatus::Finalized);
-    log::debug!("sent extrinsic:{:?}", tx_hash);
-
     match tx_hash {
-        Ok(h) => log::info!("multi_signed_mint successdul, tx hash: {:?}", h),
-        Err(e) => log::info!("multi_signed_mint failed, error:{:?}", e),
+        Ok(result) => match result {
+            Some(h) => log::info!("multi_signed_mint successdul, tx hash: {:?}", h),
+            None => log::error!("multi_signed_mint failed, grep for 'substrate_api_client] response is probably failed'"),
+        },
+        Err(e) => log::error!("multi_signed_mint failed, error: {:?}", e),
     };
 }
 
@@ -59,7 +50,14 @@ pub fn approve_transfer(
     let ext = compose_extrinsic!(sub_api, "Bridge", "approve_transfer", message_id);
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    match tx_hash {
+        Ok(result) => match result {
+            Some(h) => log::info!("approve_transfer successdul, tx hash: {:?}", h),
+            None => log::error!("approve_transfer failed, grep for 'substrate_api_client] response is probably failed'"),
+        },
+        Err(e) => log::error!("approve_transfer failed, error: {:?}", e),
+    };
 }
 
 pub fn cancel_transfer(
@@ -71,7 +69,14 @@ pub fn cancel_transfer(
     let ext = compose_extrinsic!(sub_api, "Bridge", "cancel_transfer", message_id);
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    match tx_hash {
+        Ok(result) => match result {
+            Some(h) => log::info!("cancel_transfer successdul, tx hash: {:?}", h),
+            None => log::error!("cancel_transfer failed, grep for 'substrate_api_client] response is probably failed'"),
+        },
+        Err(e) => log::error!("cancel_transfer failed, error: {:?}", e),
+    };
 }
 
 pub fn confirm_transfer(
@@ -83,7 +88,14 @@ pub fn confirm_transfer(
     let ext = compose_extrinsic!(sub_api, "Bridge", "confirm_transfer", message_id);
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    match tx_hash {
+        Ok(result) => match result {
+            Some(h) => log::info!("confirm_transfer successdul, tx hash: {:?}", h),
+            None => log::error!("confirm_transfer failed, grep for 'substrate_api_client] response is probably failed'"),
+        },
+        Err(e) => log::error!("confirm_transfer failed, error: {:?}", e),
+    };
 }
 
 pub fn pause_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
@@ -91,7 +103,16 @@ pub fn pause_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
     let ext = compose_extrinsic!(sub_api, "Bridge", "pause_bridge");
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    match tx_hash {
+        Ok(result) => match result {
+            Some(h) => log::info!("pause_bridge successdul, tx hash: {:?}", h),
+            None => log::error!(
+                "pause_bridge failed, grep for 'substrate_api_client] response is probably failed'"
+            ),
+        },
+        Err(e) => log::error!("pause_bridge failed, error: {:?}", e),
+    };
 }
 
 pub fn resume_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
@@ -99,7 +120,14 @@ pub fn resume_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
     let ext = compose_extrinsic!(sub_api, "Bridge", "resume_bridge");
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    match tx_hash {
+        Ok(result) => match result {
+            Some(h) => log::info!("resume_bridge successdul, tx hash: {:?}", h),
+            None => log::error!("resume_bridge failed, grep for 'substrate_api_client] response is probably failed'"),
+        },
+        Err(e) => log::error!("resume_bridge failed, error: {:?}", e),
+    };
 }
 
 pub fn update_limits(
@@ -124,7 +152,14 @@ pub fn update_limits(
     );
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    match tx_hash {
+        Ok(result) => match result {
+            Some(h) => log::info!("update_limits successdul, tx hash: {:?}", h),
+            None => log::error!("update_limits failed, grep for 'substrate_api_client] response is probably failed'"),
+        },
+        Err(e) => log::error!("update_limits failed, error: {:?}", e),
+    };
 }
 
 pub fn update_validator_list(
@@ -145,7 +180,14 @@ pub fn update_validator_list(
     );
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    match tx_hash {
+        Ok(result) => match result {
+            Some(h) => log::info!("update_validator_list successdul, tx hash: {:?}", h),
+            None => log::error!("update_validator_list failed, grep for 'substrate_api_client] response is probably failed'"),
+        },
+        Err(e) => log::error!("update_validator_list failed, error: {:?}", e),
+    };
 }
 
 pub fn record_price(
@@ -158,7 +200,16 @@ pub fn record_price(
     let ext = compose_extrinsic!(sub_api, "Oracle", "record_price", token, price);
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
-    let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
+    match tx_hash {
+        Ok(result) => match result {
+            Some(h) => log::info!("record_price successdul, tx hash: {:?}", h),
+            None => log::error!(
+                "record_price failed, grep for 'substrate_api_client] response is probably failed'"
+            ),
+        },
+        Err(e) => log::error!("record_price failed, error: {:?}", e),
+    };
 }
 
 pub fn get_sr25519_pair(signer_mnemonic_phrase: &str) -> sr25519::Pair {
