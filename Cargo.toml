@@ -1,10 +1,8 @@
 [package]
-version = "0.2.1"
+version = "0.2.2"
 name = "validator"
 authors = ["Akropolis Decentralised Ltd., <team@akropolis.io>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 web3 = "0.8.0"
@@ -23,44 +21,20 @@ serde_json = "1.0"
 time = "0.1.42"
 failure_derive = "0.1.7"
 
-
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
 substrate-bip39 = "0.3.1"
-node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.7', package = 'akropolisos-runtime', branch = 'aura' }
-substrate-api-client = { git = 'https://github.com/alekspickle/substrate-api-client', version = '0.4.2', branch = 'custom_node' }
-
-[dependencies.consensus]
-git = 'https://github.com/paritytech/substrate.git'
-package = 'pallet-babe'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
-
-[dependencies.system]
-git = 'https://github.com/paritytech/substrate.git'
-package = 'frame-system'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
-
-[dependencies.balances]
-default_features = false
-git = 'https://github.com/paritytech/substrate.git'
-package = 'pallet-balances'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
+node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.10', package = 'runtime', branch = 'aura' }
+substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '0.4.3', branch = 'custom_node' }
 
 [dependencies.primitives]
 features = ["full_crypto"]
-git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-core'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
-
-[dependencies.keyring]
-git = 'https://github.com/paritytech/substrate.git'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
-package = "sp-keyring"
+version = '2.0.0-alpha.6'
 
 [dependencies.runtime-primitives]
-git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-runtime'
-rev = '710722f02f372601b2dae178d66654b8cb372ab5'
+version = '2.0.0-alpha.6'
 
 [dependencies.codec]
 package = "parity-scale-codec"
