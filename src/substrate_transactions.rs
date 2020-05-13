@@ -155,7 +155,7 @@ pub fn record_price(
     price: Balance,
 ) {
     let sub_api = Api::new(sub_api_url).set_signer(get_sr25519_pair(&signer_mnemonic_phrase));
-    let ext = compose_extrinsic!(sub_api, "PriceOracle", "record_price", token, price);
+    let ext = compose_extrinsic!(sub_api, "Oracle", "record_price", token, price);
     log::debug!("extrinsic: {:?}", ext);
     //send and watch extrinsic until finalized
     let _tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
