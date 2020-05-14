@@ -1,5 +1,5 @@
 [package]
-version = "0.2.2"
+version = "0.2.3"
 name = "validator"
 authors = ["Akropolis Decentralised Ltd., <team@akropolis.io>"]
 edition = "2018"
@@ -24,8 +24,8 @@ failure_derive = "0.1.7"
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
 substrate-bip39 = "0.3.1"
-node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.11', package = 'runtime', branch = 'aura' }
-substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '0.4.4', branch = 'custom_node_alpha.7' }
+node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.12', package = 'runtime', branch = 'aura' }
+substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '0.4.5', branch = 'custom_node_alpha.7' }
 
 [dependencies.primitives]
 features = ["full_crypto"]
