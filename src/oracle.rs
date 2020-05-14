@@ -25,11 +25,11 @@ pub fn spawn(
                 .map(|t| {
                     (
                         String::from_utf8(t.0.to_owned())
-                            .expect("Failed to parse cryptos to fetch"),
+                            .expect("Failed to parse crypto symbol to fetch"),
                         String::from_utf8(t.1.to_owned())
-                            .expect("Failed to parse cryptos to fetch"),
+                            .expect("Failed to parse crypto source to fetch"),
                         String::from_utf8(t.2.to_owned())
-                            .expect("Failed to parse cryptos to fetch"),
+                            .expect("Failed to parse crypto url to fetch"),
                     )
                 })
                 .map(|t| (t.0.clone(), t.clone()))
@@ -76,7 +76,7 @@ impl Oracle {
                 _ => todo!(),
             };
 
-            log::debug!("Crypto parse result:{:?}", price);
+            log::info!("Oracle parse result ({}-{}): {:?}", &token.1, &token.0, price);
 
             let hash = H256::default();
             let event = Event::OracleMessage(hash, token.0.as_bytes().to_vec(), price);
@@ -121,7 +121,7 @@ mod tests {
     use std::sync::mpsc::channel;
     use web3::types::Address;
 
-    #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag 
+    // #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag 
     #[test]
     fn try_fetch_cdai() {
         let (s, r) = channel::<Event>();
@@ -148,7 +148,7 @@ mod tests {
         });
         assert_eq!(1, 0);
     }
-    #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag 
+    // #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag 
     #[test]
     fn try_fetch_dai() {
         let (s, r) = channel::<Event>();

@@ -534,8 +534,8 @@ fn handle_oracle_message(
                     price,
                 );
                 log::info!(
-                    "[substrate] called record_price({:?})",
-                    std::str::from_utf8(&token)
+                    "[substrate] called record_price({:?}, {})",
+                    std::str::from_utf8(&token), price
                 );
             })
             .map_err(|_| panic!("the threadpool shut down"))
