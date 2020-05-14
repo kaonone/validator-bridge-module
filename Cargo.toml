@@ -24,17 +24,17 @@ failure_derive = "0.1.7"
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
 substrate-bip39 = "0.3.1"
-node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.10', package = 'runtime', branch = 'aura' }
-substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '0.4.3', branch = 'custom_node' }
+node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.11', package = 'runtime', branch = 'aura' }
+substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '0.4.4', branch = 'custom_node_alpha.7' }
 
 [dependencies.primitives]
 features = ["full_crypto"]
 package = 'sp-core'
-version = '2.0.0-alpha.6'
+version = '2.0.0-alpha.7'
 
 [dependencies.runtime-primitives]
 package = 'sp-runtime'
-version = '2.0.0-alpha.6'
+version = '2.0.0-alpha.7'
 
 [dependencies.codec]
 package = "parity-scale-codec"
