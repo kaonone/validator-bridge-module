@@ -70,13 +70,24 @@ impl Oracle {
                 .expect("Failed to parse fetch crypto request to text");
             let json: Value =
                 serde_json::from_str(&res).expect("Failed to parse json from response");
+            log::debug!(
+                "Oracle response json ({}-{}): {:?}",
+                &token.1,
+                &token.0,
+                json
+            );
             let price = match token.1.clone() {
                 s if s == "cryptocompare" => self.parse_price_from_cryptocompare(json),
                 s if s == "coingecko" => self.parse_price_from_coingecko(json, &token.0),
                 _ => todo!(),
             };
 
-            log::info!("Oracle parse result ({}-{}): {:?}", &token.1, &token.0, price);
+            log::info!(
+                "Oracle parse result ({}-{}): {:?}",
+                &token.1,
+                &token.0,
+                price
+            );
 
             let hash = H256::default();
             let event = Event::OracleMessage(hash, token.0.as_bytes().to_vec(), price);
@@ -121,7 +132,7 @@ mod tests {
     use std::sync::mpsc::channel;
     use web3::types::Address;
 
-    // #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag 
+    // #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag
     #[test]
     fn try_fetch_cdai() {
         let (s, r) = channel::<Event>();
@@ -148,7 +159,7 @@ mod tests {
         });
         assert_eq!(1, 0);
     }
-    // #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag 
+    // #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag
     #[test]
     fn try_fetch_dai() {
         let (s, r) = channel::<Event>();
