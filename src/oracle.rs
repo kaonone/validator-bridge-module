@@ -96,8 +96,9 @@ impl Oracle {
                 .expect("Failed to sent Oracle message");
 
             log::debug!("Sent Event:{:?}", event);
-
-            thread::sleep(Duration::from_secs(6));
+            
+            // cryptocompare is restricting requests to 15000/day 
+            thread::sleep(Duration::from_secs(20));
         }
     }
     fn round_value(v: f64) -> Balance {
