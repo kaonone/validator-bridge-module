@@ -96,6 +96,7 @@ mod tests {
         assert_eq!(genesis, genesis_hash.to_string());
     }
 
+    #[ignore]
     #[test]
     fn graph_listener_test() {
         dotenv().ok();

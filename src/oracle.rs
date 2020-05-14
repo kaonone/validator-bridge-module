@@ -121,6 +121,7 @@ mod tests {
     use std::sync::mpsc::channel;
     use web3::types::Address;
 
+    #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag 
     #[test]
     fn try_fetch_cdai() {
         let (s, r) = channel::<Event>();
@@ -147,6 +148,7 @@ mod tests {
         });
         assert_eq!(1, 0);
     }
+    #[ignore] // test https fetching, goes over 60s. Run explicitly with --nocapture flag 
     #[test]
     fn try_fetch_dai() {
         let (s, r) = channel::<Event>();
