@@ -34,8 +34,8 @@ pub fn mint(
     let tx_hash = sub_api.send_extrinsic(ext_hexed, XtStatus::Finalized);
     match tx_hash {
         Ok(result) => match result {
-            Some(h) => log::info!("multi_signed_mint successdul, tx hash: {:?}", h),
-            None => log::error!("multi_signed_mint failed, grep for 'substrate_api_client] response is probably failed'"),
+            Some(h) => log::info!("multi_signed_mint extrinsic call is successful, tx hash: {:?}", h),
+            None => log::error!("multi_signed_mint failed, inspect substrate_api_client and node's output"),
         },
         Err(e) => log::error!("multi_signed_mint failed, error: {:?}", e),
     };
@@ -53,8 +53,8 @@ pub fn approve_transfer(
     let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
     match tx_hash {
         Ok(result) => match result {
-            Some(h) => log::info!("approve_transfer successdul, tx hash: {:?}", h),
-            None => log::error!("approve_transfer failed, grep for 'substrate_api_client] response is probably failed'"),
+            Some(h) => log::info!("approve_transfer extrinsic call is successful, tx hash: {:?}", h),
+            None => log::error!("approve_transfer failed, inspect substrate_api_client and node's output"),
         },
         Err(e) => log::error!("approve_transfer failed, error: {:?}", e),
     };
@@ -72,8 +72,8 @@ pub fn cancel_transfer(
     let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
     match tx_hash {
         Ok(result) => match result {
-            Some(h) => log::info!("cancel_transfer successdul, tx hash: {:?}", h),
-            None => log::error!("cancel_transfer failed, grep for 'substrate_api_client] response is probably failed'"),
+            Some(h) => log::info!("cancel_transfer extrinsic call is successful, tx hash: {:?}", h),
+            None => log::error!("cancel_transfer failed, inspect substrate_api_client and node's output"),
         },
         Err(e) => log::error!("cancel_transfer failed, error: {:?}", e),
     };
@@ -91,8 +91,8 @@ pub fn confirm_transfer(
     let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
     match tx_hash {
         Ok(result) => match result {
-            Some(h) => log::info!("confirm_transfer successdul, tx hash: {:?}", h),
-            None => log::error!("confirm_transfer failed, grep for 'substrate_api_client] response is probably failed'"),
+            Some(h) => log::info!("confirm_transfer extrinsic call is successful, tx hash: {:?}", h),
+            None => log::error!("confirm_transfer failed, inspect substrate_api_client and node's output"),
         },
         Err(e) => log::error!("confirm_transfer failed, error: {:?}", e),
     };
@@ -106,9 +106,9 @@ pub fn pause_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
     let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
     match tx_hash {
         Ok(result) => match result {
-            Some(h) => log::info!("pause_bridge successdul, tx hash: {:?}", h),
+            Some(h) => log::info!("pause_bridge extrinsic call is successful, tx hash: {:?}", h),
             None => log::error!(
-                "pause_bridge failed, grep for 'substrate_api_client] response is probably failed'"
+                "pause_bridge failed, inspect substrate_api_client and node's output"
             ),
         },
         Err(e) => log::error!("pause_bridge failed, error: {:?}", e),
@@ -123,8 +123,8 @@ pub fn resume_bridge(sub_api_url: String, signer_mnemonic_phrase: String) {
     let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
     match tx_hash {
         Ok(result) => match result {
-            Some(h) => log::info!("resume_bridge successdul, tx hash: {:?}", h),
-            None => log::error!("resume_bridge failed, grep for 'substrate_api_client] response is probably failed'"),
+            Some(h) => log::info!("resume_bridge extrinsic call is successful, tx hash: {:?}", h),
+            None => log::error!("resume_bridge failed, inspect substrate_api_client and node's output"),
         },
         Err(e) => log::error!("resume_bridge failed, error: {:?}", e),
     };
@@ -155,8 +155,8 @@ pub fn update_limits(
     let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
     match tx_hash {
         Ok(result) => match result {
-            Some(h) => log::info!("update_limits successdul, tx hash: {:?}", h),
-            None => log::error!("update_limits failed, grep for 'substrate_api_client] response is probably failed'"),
+            Some(h) => log::info!("update_limits extrinsic call is successful, tx hash: {:?}", h),
+            None => log::error!("update_limits failed, inspect substrate_api_client and node's output"),
         },
         Err(e) => log::error!("update_limits failed, error: {:?}", e),
     };
@@ -183,8 +183,8 @@ pub fn update_validator_list(
     let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
     match tx_hash {
         Ok(result) => match result {
-            Some(h) => log::info!("update_validator_list successdul, tx hash: {:?}", h),
-            None => log::error!("update_validator_list failed, grep for 'substrate_api_client] response is probably failed'"),
+            Some(h) => log::info!("update_validator_list extrinsic call is successful, tx hash: {:?}", h),
+            None => log::error!("update_validator_list failed, inspect substrate_api_client and node's output"),
         },
         Err(e) => log::error!("update_validator_list failed, error: {:?}", e),
     };
@@ -203,9 +203,9 @@ pub fn record_price(
     let tx_hash = sub_api.send_extrinsic(ext.hex_encode(), XtStatus::Finalized);
     match tx_hash {
         Ok(result) => match result {
-            Some(h) => log::info!("record_price successdul, tx hash: {:?}", h),
+            Some(h) => log::info!("record_price extrinsic call is successful, tx hash: {:?}", h),
             None => log::error!(
-                "record_price failed, grep for 'substrate_api_client] response is probably failed'"
+                "record_price failed, inspect substrate_api_client and node's output"
             ),
         },
         Err(e) => log::error!("record_price failed, error: {:?}", e),
