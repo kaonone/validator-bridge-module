@@ -3435,7 +3435,7 @@ dependencies = [
 [[package]]
 name = "substrate-api-client"
 version = "0.4.5"
-source = "git+https://github.com/akropolisio/substrate-api-client?branch=custom_node_alpha.7#70f2a55dd3615cc990a99fef31708b433a2de8f1"
+source = "git+https://github.com/akropolisio/substrate-api-client?branch=custom_node_alpha.7#7dd0db804c22d578a4b1d037dd417bbb79dc9832"
 dependencies = [
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "frame-metadata 11.0.0-alpha.7 (registry+https://github.com/rust-lang/crates.io-index)",
