@@ -6,6 +6,7 @@ use std::thread;
 
 use crate::config::Config;
 use crate::controller_storage::ControllerStorage;
+use node_runtime::Balance;
 
 type MessageId = H256;
 type EthAddress = H160;
@@ -28,20 +29,8 @@ pub enum Event {
     EthBridgeStartedMessage(MessageId, EthAddress, BlockNumber),
     EthBridgeStoppedMessage(MessageId, EthAddress, BlockNumber),
 
-    EthRelayMessage(
-        MessageId,
-        EthAddress,
-        SubAddress,
-        Amount,
-        BlockNumber,
-    ),
-    EthApprovedRelayMessage(
-        MessageId,
-        EthAddress,
-        SubAddress,
-        Amount,
-        BlockNumber,
-    ),
+    EthRelayMessage(MessageId, EthAddress, SubAddress, Amount, BlockNumber),
+    EthApprovedRelayMessage(MessageId, EthAddress, SubAddress, Amount, BlockNumber),
     EthRevertMessage(MessageId, EthAddress, Amount, BlockNumber),
     EthWithdrawMessage(MessageId, BlockNumber),
 
@@ -89,6 +78,7 @@ pub enum Event {
 
     SubAccountPausedMessage(MessageId, SubAddress, Timestamp, TokenId, BlockNumber),
     SubAccountResumedMessage(MessageId, SubAddress, Timestamp, TokenId, BlockNumber),
+    OracleMessage(MessageId, Vec<u8>, Balance),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -99,7 +89,6 @@ enum EventType {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Status {
-    NotReady,
     Active,
     Paused,
     Stopped,
@@ -155,6 +144,7 @@ impl Event {
             Self::EthGuestAccountResumedMessage(message_id, _, _, _) => message_id,
             Self::SubAccountPausedMessage(message_id, _, _, _, _) => message_id,
             Self::SubAccountResumedMessage(message_id, _, _, _, _) => message_id,
+            Self::OracleMessage(message_id, _, _) => message_id,
         }
     }
 
@@ -184,6 +174,7 @@ impl Event {
             Self::EthGuestAccountResumedMessage(_, _, _, block_number) => *block_number,
             Self::SubAccountPausedMessage(_, _, _, _, block_number) => *block_number,
             Self::SubAccountResumedMessage(_, _, _, _, block_number) => *block_number,
+            Self::OracleMessage(_, _, _) => u128::default(),
         }
     }
 
@@ -249,14 +240,14 @@ impl Controller {
                         Status::Active => {
                             handle_account_control_events(storage, &event);
                             let deferred_events =
-                            storage.iter_events_queue().cloned().collect::<Vec<_>>();
+                                storage.iter_events_queue().cloned().collect::<Vec<_>>();
                             deferred_events.iter().cloned().for_each(|event| {
                                 handle_account_control_events(storage, &event);
                                 executor_tx.send(event).expect("can not sent event")
                             });
                             storage.clear_events_queue();
                             if event.event_type() == EventType::Transfer
-                            && storage.is_account_blocked(event.sender())
+                                && storage.is_account_blocked(event.sender())
                             {
                                 log::info!("putting event in a queue: {:?}", event);
                                 storage.put_event_to_account_queue(event)
@@ -264,9 +255,7 @@ impl Controller {
                                 executor_tx.send(event).expect("can not sent event")
                             }
                         }
-                        Status::NotReady | Status::Paused | Status::Stopped => {
-                            storage.put_event_to_queue(event)
-                        }
+                        Status::Paused | Status::Stopped => storage.put_event_to_queue(event),
                     }
                 }
                 Err(e) => log::debug!("controller storage error: {:?}", e),
@@ -288,7 +277,7 @@ fn change_status(status: &mut Status, event: &Event) {
             }
             _ => (),
         },
-        Status::NotReady | Status::Paused => match event {
+        Status::Paused => match event {
             Event::EthBridgeResumedMessage(..) | Event::EthBridgeStartedMessage(..) => {
                 *status = Status::Active;
                 status_changed = true;

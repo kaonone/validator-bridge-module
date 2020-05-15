@@ -16,6 +16,7 @@ pub struct Config {
     pub eth_validator_address: Address,
     pub eth_validator_private_key: String,
     pub token_bridge_address: Address,
+    pub token_symbol: String,
     pub eth_gas_price: u64,
     pub eth_gas: u64,
     pub sub_token_index: u32,
@@ -31,6 +32,7 @@ impl Config {
             eth_validator_address: parse_eth_validator_address()?,
             eth_validator_private_key: parse_eth_validator_private_key()?,
             token_bridge_address: parse_token_bridge_address()?,
+            token_symbol: parse_token_symbol()?,
             eth_gas_price: parse_eth_gas_price()?,
             eth_gas: parse_eth_gas()?,
             sub_token_index: parse_sub_token_index()?,
@@ -100,6 +102,13 @@ fn parse_sub_validator_mnemonic_phrase() -> Result<String, &'static str> {
     try_convert_to_sr25519_key_pair(&mnemonic_phrase)?;
 
     Ok(mnemonic_phrase)
+}
+
+fn parse_token_symbol() -> Result<String, &'static str> {
+    let sym = env::var("TOKEN_SYMBOL")
+        .map_err(|_| "can not read TOKEN_SYMBOL")?;
+
+    Ok(sym)
 }
 
 fn try_convert_to_sr25519_key_pair(mnemonic_phrase: &str) -> Result<(), &'static str> {

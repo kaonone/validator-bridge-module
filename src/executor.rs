@@ -1,6 +1,6 @@
 use futures::future::{lazy, poll_fn};
 use log;
-use primitives::{self, crypto::Public};
+use primitives::{self, crypto::AccountId32};
 use tokio::runtime::{Runtime, TaskExecutor};
 use tokio_threadpool::blocking;
 use web3::{
@@ -8,15 +8,12 @@ use web3::{
     types::{Bytes, H160, H256, U256},
 };
 
+use crate::{config::Config, controller::Event, ethereum_transactions, substrate_transactions};
+use node_runtime::Balance;
 use std::{
     sync::{mpsc::Receiver, Arc},
     thread,
 };
-
-use crate::config::Config;
-use crate::controller::Event;
-use crate::ethereum_transactions;
-use crate::substrate_transactions;
 
 const AMOUNT: u64 = 0;
 
@@ -226,6 +223,9 @@ impl Executor {
                     message_id,
                     sub_address,
                 ),
+                Event::OracleMessage(_message_id, token, price) => {
+                    handle_oracle_message(&self.config, runtime.executor(), token, price)
+                }
             }
         })
     }
@@ -295,22 +295,25 @@ fn handle_eth_relay_message<T>(
 ) where
     T: web3::Transport + Send + Sync + 'static,
     T::Out: Send,
-    {
-    log::debug!("handle_eth_relay_message");
-    
+{
     let args = (message_id, eth_address, sub_address, amount);
     let eth_validator_private_key = config.eth_validator_private_key.clone();
     let bridge_address = config.token_bridge_address;
     let eth_gas_price = config.eth_gas_price;
     let eth_gas = config.eth_gas;
 
-    log::debug!("handle_eth_relay_message:args:message_id:{:?} eth_address:{:?}, sub_address:{:?}, amount:{:?}", message_id, eth_address, sub_address, amount);
-    
+    log::info!(
+        "handle_eth_relay_message: message_id:{:?} eth_address:{:?}, sub_address:{:?}, amount:{:?}",
+        message_id,
+        eth_address,
+        sub_address,
+        amount
+    );
+
     let data = ethereum_transactions::build_transaction_data(&abi, "approveTransfer", args);
     let fut = web3.eth().transaction_count(config.eth_validator_address, None)
         .and_then(move |nonce| {
 
-            log::debug!("approveTransfer input: bridge_address:{:?}, nonce:{:?}, AMOUNT:{:?}, eth gas price:{:?}, gas:{:?}, data:{:?}", bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             let tx = ethereum_transactions::build(eth_validator_private_key, bridge_address, nonce, AMOUNT, eth_gas_price, eth_gas, data);
             log::debug!("raw approveTransfer: {:?}", tx);
             web3.eth().send_raw_transaction(Bytes::from(tx))
@@ -341,7 +344,6 @@ fn handle_eth_approved_relay_message(
     sub_address: H256,
     amount: U256,
 ) {
-    
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
     let eth_address = primitives::H160::from_slice(&eth_address.to_fixed_bytes());
     let sub_address = primitives::crypto::AccountId32::from(sub_address.to_fixed_bytes());
@@ -349,7 +351,7 @@ fn handle_eth_approved_relay_message(
     let amount = amount.low_u128();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
     let sub_api_url = config.sub_api_url.clone();
-    log::debug!("handle_EthRelayMessage");
+    log::debug!("handle_EthApproveRelayMessage");
 
     task_executor.spawn(lazy(move || {
         poll_fn(move || {
@@ -464,9 +466,9 @@ fn handle_eth_validators_list_message(
     new_how_many_validators_decide: U256,
 ) {
     let message_id = primitives::H256::from_slice(&message_id.to_fixed_bytes());
-    let new_validators = new_validators
+    let new_validators: Vec<AccountId32> = new_validators
         .iter()
-        .map(|a| primitives::sr25519::Public::from_slice(&a.to_fixed_bytes()))
+        .map(|a| AccountId32::from(a.to_fixed_bytes()))
         .collect::<Vec<_>>();
     let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
     let sub_api_url = config.sub_api_url.clone();
@@ -507,6 +509,34 @@ fn handle_sub_relay_message(config: &Config, task_executor: TaskExecutor, messag
                     message_id,
                 );
                 log::info!("[substrate] called approve_transfer({:?})", message_id);
+            })
+            .map_err(|_| panic!("the threadpool shut down"))
+        })
+    }));
+}
+
+fn handle_oracle_message(
+    config: &Config,
+    task_executor: TaskExecutor,
+    token: Vec<u8>,
+    price: Balance,
+) {
+    let sub_validator_mnemonic_phrase = config.sub_validator_mnemonic_phrase.clone();
+    let sub_api_url = config.sub_api_url.clone();
+
+    task_executor.spawn(lazy(move || {
+        poll_fn(move || {
+            blocking(|| {
+                substrate_transactions::record_price(
+                    sub_api_url.clone(),
+                    sub_validator_mnemonic_phrase.clone(),
+                    token.clone(),
+                    price,
+                );
+                log::info!(
+                    "[substrate] called record_price({:?}, {})",
+                    std::str::from_utf8(&token), price
+                );
             })
             .map_err(|_| panic!("the threadpool shut down"))
         })

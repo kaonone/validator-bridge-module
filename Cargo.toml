@@ -1,10 +1,8 @@
 [package]
-version = "0.2.1"
+version = "0.2.3"
 name = "validator"
 authors = ["Akropolis Decentralised Ltd., <team@akropolis.io>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 web3 = "0.8.0"
@@ -19,52 +17,24 @@ dotenv = "0.14.1"
 graphql_client = "0.8.0"
 reqwest = "0.9.22"
 serde = "1.0.101"
+serde_json = "1.0"
 time = "0.1.42"
 failure_derive = "0.1.7"
-
 
 raw-transaction-builder = { path = 'raw-transaction-builder' }
 
 substrate-bip39 = "0.3.1"
-node-runtime = { git = 'https://github.com/akropolisio/akropolisos-chain-node', version = '0.5.4', package = 'akropolisos-runtime', branch = 'v2.0.0-alpha.6' }
-substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '2.0.2', branch = 'v2.0.0-alpha.6' }
-
-[dependencies.consensus]
-git = 'https://github.com/paritytech/substrate.git'
-package = 'pallet-babe'
-version = '2.0.0-alpha.6'
-
-[dependencies.system]
-git = 'https://github.com/paritytech/substrate.git'
-package = 'frame-system'
-version = '2.0.0-alpha.6'
-
-[dependencies.balances]
-default_features = false
-git = 'https://github.com/paritytech/substrate.git'
-package = 'pallet-balances'
-version = '2.0.0-alpha.6'
+node-runtime = { git = 'https://github.com/alekspickle/akropolisos-chain-node', version = '0.5.12', package = 'runtime', branch = 'aura' }
+substrate-api-client = { git = 'https://github.com/akropolisio/substrate-api-client', version = '0.4.5', branch = 'custom_node_alpha.7' }
 
 [dependencies.primitives]
 features = ["full_crypto"]
-git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-core'
-version = '2.0.0-alpha.6'
-
-[dependencies.keyring]
-git = 'https://github.com/paritytech/substrate.git'
-version = '2.0.0-alpha.6'
-package = "sp-keyring"
+version = '2.0.0-alpha.7'
 
 [dependencies.runtime-primitives]
-git = 'https://github.com/paritytech/substrate.git'
 package = 'sp-runtime'
-version = '2.0.0-alpha.6'
-
-[dependencies.parity-codec]
-default-features = false
-features = ['derive']
-version = '3.5'
+version = '2.0.0-alpha.7'
 
 [dependencies.codec]
 package = "parity-scale-codec"
